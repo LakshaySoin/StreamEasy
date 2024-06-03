@@ -10,14 +10,16 @@ from seleniumbase import SB
 import time
 import argparse
 
-SCROLL_PAUSE_TIME = 3
-
-def download_playlist(playlist_url):
+def exec(playlist_url, email_address, password):
     driver = webdriver.Chrome()
 
+    # Grab song data
     data = scrape_playlist(playlist_url, driver)
-    search_youtube(data[1:], 'lakshaysoin@gmail.com', 'Curryisgood!1234', data[0])
 
+    # Search songs and transfer to a playlist
+    search_youtube(data[1:], email_address, password, data[0])
+
+    # Close the tabs
     driver.close()
 
 def scrape_playlist(playlist_url, driver):
@@ -25,19 +27,17 @@ def scrape_playlist(playlist_url, driver):
     # Open spotify for data collection
     driver.get(playlist_url)
     driver.maximize_window()
-    # time.sleep(30)
     
     # Store song names and artists
     data = []
 
+    # Get the name of spotify playlist to use for youtube playlist
     playlist_name = driver.find_element(By.CLASS_NAME, 'rEN7ncpaUeSGL9z0NGQR')
 
     data.append(playlist_name.text)
 
-    # Length of webpage
+    # Length of container with songs
     length = driver.execute_script("return document.querySelector('.lYpiKR_qEjl1jGGyEvsA').clientHeight")
-
-    # length = 625
 
     curr_length = 0
 
@@ -56,40 +56,31 @@ def scrape_playlist(playlist_url, driver):
             if arr not in data:
                 data.append(arr)
 
+        # Container to scroll within
         scroll_box = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[4]/div/div'))
         )
 
-        # driver.execute_script('arguments[0].scrollTop = arguments[0].scrollTop + arguments[0].offsetHeight;', scroll_box)
-
+        # Move down webpage (this doesn't accidently click album names)
         action.click_and_hold(scroll_box).drag_and_drop_by_offset(scroll_box, 0, 100).perform()
-        
-        # action.move_to_element(scroll_box).move_by_offset(0,50).click().perform()
-
-        # action.click_and_hold(scroll_box)
-
-        # action.perform()
-
-        # action.drag_and_drop_by_offset(scroll_box, 0, min(length - curr_length, 100))
-
-        # action.perform()
 
         # Calculate new scroll height and compare with last scroll height
         curr_length += 100
-        print(curr_length)
-        print(length)
+
         time.sleep(1)
+
+        # End scrolling
         if curr_length >= length:
             break
 
+    # Remove recommended songs
     data = data[:-10]
-
-    print(data)
 
     return data
 
 def search_youtube(data_frame, username, password, playlist_title):
     with SB(uc=True) as driver:
+        # Login to google account (bypasses the insecure page)
         driver.get("https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&ec=65620&hl=en&ifkv=AS5LTARVpfGfB8Iq0HL3aV_O1MY5qjuW5AlQiOnun0WuNxvOVTgB5Jh4I-ptBorc6RvhieqxgjYX&passive=true&service=youtube&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S-1859192857%3A1717365834211317&ddm=0")
         driver.type("#identifierId", username)
         driver.click("#identifierNext > div > button")
@@ -105,43 +96,62 @@ def search_youtube(data_frame, username, password, playlist_title):
         count = -1
 
         for songs in data_frame:
+            # Search for song
             search_bar.send_keys(songs[0] + " by " + songs[1])
             search_bar.send_keys(Keys.RETURN)
+
             time.sleep(0.5)
+
+            # Click on first video result
             video = driver.find_element(By.CSS_SELECTOR, 'a[id="video-title"]')
             video.click()
+
+            # Access save button
             selector = driver.find_element(By.XPATH, '//*[@id="button-shape"]/button')
             selector.click()
             save = driver.find_element(By.XPATH, '//*[@id="items"]/ytd-menu-service-item-renderer[2]/tp-yt-paper-item/yt-formatted-string')
             save.click()
+
             if count == -1:
+                # Only create a playlist if its the first song
                 create_playlist = driver.find_element(By.XPATH, '//*[@id="content-icon"]')
                 create_playlist.click()
+
+                # Name the playlist
                 playlist_name = driver.find_element(By.XPATH, '//*[@id="input-2"]/input')
                 playlist_name.send_keys(playlist_title)
+
+                # Create playlist
                 create = driver.find_element(By.XPATH, '//*[@id="actions"]/ytd-button-renderer/yt-button-shape/button/yt-touch-feedback-shape/div')
                 create.click()
                 count += 1
             else:
+                # Find the names of all created playlists
                 playlists = driver.find_element(By.ID, 'playlists')
                 playlist_names = playlists.text.split("\n")
+
                 for name in playlist_names:
+                    # Add to playlist named after spotify playlist
                     if name == playlist_title:
-                        # print(name)
                         add_to_playlist = driver.find_element(By.XPATH, f"//*[contains(text(),'{name}')]")
                         add_to_playlist.click()
-            time.sleep(SCROLL_PAUSE_TIME)
+
+            time.sleep(3)
+
+            # Clear search bar
             search_bar.clear()
 
 if __name__ == "__main__":
 
-# Initialize parser
+    # Initialize parser
     parser = argparse.ArgumentParser()
     
-    # Adding optional argument
+    # Add required information needed from the user
     parser.add_argument("-u", "--url", help = "link for spotify playlist")
+    parser.add_argument("-e", "--email", help = "username for google account")
+    parser.add_argument("-p", "--password", help = "password for google account")
     
     # Read arguments from command line
     args = parser.parse_args()
 
-    download_playlist(args.url)
+    exec(args.url, args.email, args.password)
