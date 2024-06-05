@@ -7,20 +7,21 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains as AC
 from seleniumbase import SB
+from selenium.webdriver.chrome.options import Options
+import os
+import subprocess
 import time
 import argparse
+# import sqlite3
 
-def exec(playlist_url, email_address, password):
+def exec(playlist_url, download_option, email_address="lakshaysoin@gmail.com", password="Curryisgood!1234"):
     driver = webdriver.Chrome()
 
     # Grab song data
     data = scrape_playlist(playlist_url, driver)
 
     # Search songs and transfer to a playlist
-    search_youtube(data[1:], email_address, password, data[0])
-
-    # Close the tabs
-    driver.close()
+    search_youtube(data[1:], email_address, password, data[0], download_option)
 
 def scrape_playlist(playlist_url, driver):
 
@@ -76,12 +77,16 @@ def scrape_playlist(playlist_url, driver):
     # Remove recommended songs
     data = data[:-10]
 
+    # Close the tab
+    driver.close()
+
     return data
 
-def search_youtube(data_frame, username, password, playlist_title):
+def search_youtube(data_frame, username, password, playlist_title, download_option):
     with SB(uc=True) as driver:
         # Login to google account (bypasses the insecure page)
         driver.get("https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252F&ec=65620&hl=en&ifkv=AS5LTARVpfGfB8Iq0HL3aV_O1MY5qjuW5AlQiOnun0WuNxvOVTgB5Jh4I-ptBorc6RvhieqxgjYX&passive=true&service=youtube&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin&dsh=S-1859192857%3A1717365834211317&ddm=0")
+
         driver.type("#identifierId", username)
         driver.click("#identifierNext > div > button")
 
@@ -136,10 +141,46 @@ def search_youtube(data_frame, username, password, playlist_title):
                         add_to_playlist = driver.find_element(By.XPATH, f"//*[contains(text(),'{name}')]")
                         add_to_playlist.click()
 
+            # Apply option of downloading playlist  
+            if download_option:
+                desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+                download_folder = "_".join(playlist_title.split(" "))
+                folder_path = os.path.join(desktop_path, download_folder)
+
+                # Check if the folder already exists
+                if not os.path.exists(folder_path):
+                    # Create the new folder
+                    os.makedirs(folder_path)
+
+                chrome_options = Options()
+                chrome_options.add_experimental_option("prefs", {
+                "download.default_directory": folder_path,
+                "download.prompt_for_download": False,  # To suppress download prompt
+                "download.directory_upgrade": True,
+                "safebrowsing.enabled": True
+                })
+
+                temp_driver = webdriver.Chrome(options=chrome_options)
+                download_playlist(temp_driver, driver.get_current_url())
+                temp_driver.close()
+
+            search_bar.clear()
+
             time.sleep(3)
 
-            # Clear search bar
-            search_bar.clear()
+
+def download_playlist(driver, curr_url):
+    print(curr_url)
+    print(curr_url[:16] + curr_url[19:])
+    driver.get(curr_url[:16] + curr_url[19:])
+
+    time.sleep(5)
+    download_button = driver.find_element(By.XPATH, '/html/body/div[2]/div[1]/div/div[1]/div/div/div[3]/div[3]/div[7]/button')
+    download_button.click()
+
+    time.sleep(30)
+    action = AC(driver)
+    action.key_down(Keys.ENTER)
 
 if __name__ == "__main__":
 
@@ -148,10 +189,11 @@ if __name__ == "__main__":
     
     # Add required information needed from the user
     parser.add_argument("-u", "--url", help = "link for spotify playlist")
-    parser.add_argument("-e", "--email", help = "username for google account")
-    parser.add_argument("-p", "--password", help = "password for google account")
+    # parser.add_argument("-e", "--email", help = "username for google account")
+    # parser.add_argument("-p", "--password", help = "password for google account")
+    parser.add_argument("-d", "--download", help = "True of False option to download playlist")
     
     # Read arguments from command line
     args = parser.parse_args()
 
-    exec(args.url, args.email, args.password)
+    exec(args.url, args.download)
