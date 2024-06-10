@@ -190,7 +190,7 @@ def download_playlist(driver, curr_url):
     )
     download_button.click()
 
-    time.sleep(30)
+    time.sleep(20)
 
 if __name__ == "__main__":
 
