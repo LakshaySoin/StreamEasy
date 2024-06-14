@@ -4,7 +4,7 @@ import './Navbar.css'
 import logo from '../logo-removebg-preview.png'
 
 function Navbar() {
-  const [click, setClick] = useState(true);
+  const [click, setClick] = useState(false);
   const [link, setLink] = useState(true);
 
   const handleClick = () => {
@@ -12,7 +12,14 @@ function Navbar() {
     setLink(!link)
   };
 
-  const closeMobileMenu = () => setClick(false);
+  const closeMobileMenu = () => {
+    setClick(false);
+    if (window.innerWidth <= 960) {
+      setLink(!link);
+    } else {
+      setLink(true);
+    }
+  }
 
   const showButton = () => {
     if (window.innerWidth <= 960) {

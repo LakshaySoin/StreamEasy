@@ -6,7 +6,7 @@ function Intro() {
   return (
     <div className='intro-container'>
       <h1>Music Tailored to You</h1>
-      <p>Dive into 1+ million songs!</p>
+      <p>Dive into songs from your favorite artists!</p>
       <div className='intro-btns'>
         <Button
           className='btns'
