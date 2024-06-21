@@ -8,6 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains as AC
 from seleniumbase import SB
 from selenium.webdriver.chrome.options import Options
+import urllib
 import os
 import time
 import yt_dlp
@@ -20,8 +21,9 @@ def scrape_playlist(playlist_url):
     driver.get(playlist_url)
     driver.maximize_window()
     
-    # Store song names and artists
+    # Store song names, artists, and album name/cover
     data = []
+    src = []
 
     # Get the name of spotify playlist to use for youtube playlist
     playlist_name = WebDriverWait(driver, 10).until(
@@ -38,6 +40,12 @@ def scrape_playlist(playlist_url):
     action = AC(driver)
 
     while True:
+        # Get album cover image
+        album_covers = driver.find_elements(By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]/div[2]/main/div[1]/section/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[2]/img')
+
+        for img in album_covers:
+            if (img.get_attribute('src') not in src):
+                src.append(img.get_attribute('src'))
 
         # Get song and artist names on the current page
         elements = driver.find_elements(By.CLASS_NAME, '_iQpvk1c9OgRAc8KRTlH')
@@ -70,6 +78,9 @@ def scrape_playlist(playlist_url):
     # Remove recommended songs
     data = data[:-10]
 
+    for i in range(len(src)):
+        urllib.request.urlretrieve(str(src[i]), "album-covers/cover{}.jpg".format(i))
+
     # Close the tab
     driver.close()
 
@@ -85,7 +96,6 @@ def find_song(driver, search_bar, songs):
     # Click on first video result
     video = driver.find_element(By.CSS_SELECTOR, 'a[id="video-title"]')
     video.click()
-    
 
 def convert_to_youtube(data_frame, username, password, playlist_title):
     with SB(uc=True) as driver:
@@ -159,31 +169,11 @@ def download_playlist(data_frame, playlist_title):
         for songs in data_frame:
             find_song(driver, search_bar, songs)
 
-            desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
-            download_folder = "_".join(playlist_title.split(" "))
-            folder_path = os.path.join(desktop_path, download_folder)
-
-            # Check if the folder already exists
-            if not os.path.exists(folder_path):
-                # Create the new folder
-                os.makedirs(folder_path)
-
-            # Ensure download to correct folder
-            chrome_options = Options()
-            chrome_options.add_experimental_option("prefs", {
-            "download.default_directory": folder_path,
-            "download.prompt_for_download": False,  # suppress download prompt
-            "download.directory_upgrade": True,
-            "safebrowsing.enabled": True
-            })
-
             curr_url = driver.get_current_url()
-
-            time.sleep(5)
 
             ydl_opts = {
                 'format': 'm4a/bestaudio/best',
-                # ℹ️ See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
+                'outtmpl': f'./songs/{songs[0].strip(" ")}-{songs[1].strip(" ")}',
                 'postprocessors': [{  # Extract audio using ffmpeg
                     'key': 'FFmpegExtractAudio',
                     'preferredcodec': 'mp3',
@@ -193,9 +183,9 @@ def download_playlist(data_frame, playlist_title):
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([f'{curr_url}'])
 
-            time.sleep(5)
-
         # Clear the search bar so the next song search works correctly
         search_bar.clear()
 
         time.sleep(3)
+
+scrape_playlist("https://open.spotify.com/playlist/1Gw98UgjLS13S51XsO0XAC")

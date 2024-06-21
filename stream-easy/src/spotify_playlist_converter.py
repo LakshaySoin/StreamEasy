@@ -1,6 +1,5 @@
 # Implement dependencies for web scraping
 
-from selenium import webdriver 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import scrape_spotify
