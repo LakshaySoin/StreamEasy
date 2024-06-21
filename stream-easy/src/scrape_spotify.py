@@ -189,3 +189,4 @@ def download_playlist(data_frame, playlist_title):
         time.sleep(3)
 
 scrape_playlist("https://open.spotify.com/playlist/1Gw98UgjLS13S51XsO0XAC")
+print("hello there this is a test")
