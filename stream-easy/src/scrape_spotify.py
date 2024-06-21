@@ -78,6 +78,13 @@ def scrape_playlist(playlist_url):
     # Remove recommended songs
     data = data[:-10]
 
+    folder = "album-covers"
+
+    # Check if the folder already exists
+    if not os.path.exists(folder):
+        # Create the new folder
+        os.makedirs(folder)
+
     for i in range(len(src)):
         urllib.request.urlretrieve(str(src[i]), "album-covers/cover{}.jpg".format(i))
 
