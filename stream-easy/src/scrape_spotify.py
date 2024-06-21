@@ -24,6 +24,7 @@ def scrape_playlist(playlist_url):
     # Store song names, artists, and album name/cover
     data = []
     src = []
+    albums = []
 
     # Get the name of spotify playlist to use for youtube playlist
     playlist_name = WebDriverWait(driver, 10).until(
@@ -46,6 +47,12 @@ def scrape_playlist(playlist_url):
         for img in album_covers:
             if (img.get_attribute('src') not in src):
                 src.append(img.get_attribute('src'))
+
+        album_names = driver.find_elements(By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]/div[2]/main/div[1]/section/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[3]')
+
+        for i in range(len(album_names)):
+            if (album_names[i].text not in albums):
+                albums.append(album_names[i].text)
 
         # Get song and artist names on the current page
         elements = driver.find_elements(By.CLASS_NAME, '_iQpvk1c9OgRAc8KRTlH')
@@ -77,6 +84,7 @@ def scrape_playlist(playlist_url):
 
     # Remove recommended songs
     data = data[:-10]
+    # albums = albums[:-10]
 
     folder = "album-covers"
 
@@ -85,8 +93,13 @@ def scrape_playlist(playlist_url):
         # Create the new folder
         os.makedirs(folder)
 
-    for i in range(len(src)):
-        urllib.request.urlretrieve(str(src[i]), "album-covers/cover{}.jpg".format(i))
+    try:
+        for i in range(len(src)):
+            urllib.request.urlretrieve(str(src[i]), f"{folder}/{albums[i]}.jpg")
+    except Exception as e:
+        print(len(src))
+        print(len(albums))
+        print("the lengths are different", e)
 
     # Close the tab
     driver.close()
