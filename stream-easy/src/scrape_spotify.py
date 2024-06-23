@@ -7,14 +7,13 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains as AC
 from seleniumbase import SB
-from selenium.webdriver.chrome.options import Options
+# from selenium.webdriver.chrome.options import Options
 import urllib
 import os
 import time
 import yt_dlp
-# import sqlite3
 
-def scrape_playlist(playlist_url):
+def scrape_playlist(playlist_url, cursor, db):
     driver = webdriver.Chrome()
 
     # Open spotify for data collection
@@ -48,14 +47,14 @@ def scrape_playlist(playlist_url):
             if (img.get_attribute('src') not in src):
                 src.append(img.get_attribute('src'))
 
+        # Get song and artist names on the current page
+        elements = driver.find_elements(By.CLASS_NAME, '_iQpvk1c9OgRAc8KRTlH')
+
         album_names = driver.find_elements(By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]/div[2]/main/div[1]/section/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[3]')
 
         for i in range(len(album_names)):
             if (album_names[i].text not in albums):
                 albums.append(album_names[i].text)
-
-        # Get song and artist names on the current page
-        elements = driver.find_elements(By.CLASS_NAME, '_iQpvk1c9OgRAc8KRTlH')
 
         # Iterate through all song elements and append unique ones to array
         for i in range(len(elements)):
@@ -84,7 +83,16 @@ def scrape_playlist(playlist_url):
 
     # Remove recommended songs
     data = data[:-10]
-    # albums = albums[:-10]
+
+    for i in range(len(albums)): 
+        entry = (data[0], data[i + 1][0], data[i + 1][1], albums[i])
+        add_to_db = True
+        for row in cursor.execute("SELECT playlist_title, song_name, artist, album FROM playlists"):
+            if entry == row:
+                add_to_db = False
+        if (add_to_db):
+            cursor.execute("INSERT INTO playlists VALUES(?, ?, ?, ?)", entry)
+            db.commit()
 
     folder = "album-covers"
 
@@ -172,7 +180,7 @@ def convert_to_youtube(data_frame, username, password, playlist_title):
                         add_to_playlist = driver.find_element(By.XPATH, f"//*[contains(text(),'{name}')]")
                         add_to_playlist.click()
 
-def download_playlist(data_frame, playlist_title):
+def download_playlist(data_frame):
     with SB(uc=True) as driver:
         # Login to google account (bypasses the insecure page)
         driver.get("https://www.youtube.com/")
@@ -207,5 +215,3 @@ def download_playlist(data_frame, playlist_title):
         search_bar.clear()
 
         time.sleep(3)
-
-scrape_playlist("https://open.spotify.com/playlist/1Gw98UgjLS13S51XsO0XAC")
