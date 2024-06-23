@@ -17,6 +17,15 @@ def receive_links():
     exec(links)
     return {}
 
+@app.route("/webplayer/playlist-1", methods=['GET'])
+def get_items():
+    db = sqlite3.connect("stream-easy.db")
+    cursor = db.cursor()
+    cursor.row_factory = sqlite3.Row
+    items = cursor.execute("SELECT * FROM playlists").fetchall()
+    db.close()
+    return jsonify([dict(item) for item in items])
+
 def connect_to_db():
     db = sqlite3.connect("stream-easy.db")
     cursor = db.cursor()
