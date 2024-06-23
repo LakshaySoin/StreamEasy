@@ -46,13 +46,7 @@ function Form() {
             </form>}
             {update && <div className='downloading-container'> 
             <h1>
-                We are downloading and transferring your playlists to your laptop.  
-            </h1>
-            <h1>
-                This will take anywhere from 5 - 15 minutes depending on the size of your playlists. 
-            </h1>
-            <h1>
-                Once done, you can start listening on our webplayer.
+                Succesful Transfer!
             </h1>
             <Link 
                 to='webplayer'

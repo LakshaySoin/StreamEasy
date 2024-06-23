@@ -15,15 +15,20 @@ def receive_links():
     data = request.get_json()
     links = data.get('links', [])
     exec(links)
-    return ""
+    return {}
+
+def connect_to_db():
+    db = sqlite3.connect("stream-easy.db")
+    cursor = db.cursor()
+    return [db, cursor]
 
 def exec(playlist_urls):
 
-    db = sqlite3.connect("stream-easy.db")
-    cursor = db.cursor()
-    # Check if the folder already exists
     if not os.path.exists("stream-easy.db"):
+        db, cursor = connect_to_db()
         cursor.execute("CREATE TABLE playlists(playlist_title, song_name, artist, album)")
+    else:
+        db, cursor = connect_to_db()
 
     # Grab song data
     for playlist_url in playlist_urls:

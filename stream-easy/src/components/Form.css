@@ -27,12 +27,12 @@
   }
 
   .downloading-container {
-    margin-top: 200px;
+    margin-top: 250px;
   }
 
   .downloading-container > h1 {
     color: #fff;
-    font-size: 20px;
+    font-size: 50px;
     margin-top: 30px;
     font-family: "Montserrat", sans-serif;
     text-align: center;
