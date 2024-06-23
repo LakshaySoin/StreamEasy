@@ -13,17 +13,17 @@ function Player() {
 
   return (
       <div className='main-container'>
-        <div className='side-bar'>
-        <h1>Playlists</h1>
-        {/* <Button
-          className='btns'
-          buttonStyle='btn--outline'
-          buttonSize='btn-large'
-          link='/set-up'
-        >
-
-        </Button> */}
-        <div className='playlist-cards'>
+        <div className='left-side-bar'>
+          <div className='top-left-side-bar'>
+            <button className='expand-playlists'>
+              <i className='fas fa-book-open icon' />
+              <h1>Playlists</h1>
+            </button>
+            <button className='add-playlists'>
+              <i className="fas fa-plus icon" />
+            </button>
+            <div className='playlist-cards'>
+          </div>
           {/* <Card
           
           >
