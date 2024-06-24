@@ -35,7 +35,7 @@ def exec(playlist_urls):
 
     if not os.path.exists("stream-easy.db"):
         db, cursor = connect_to_db()
-        cursor.execute("CREATE TABLE playlists(playlist_title, song_name, artist, album)")
+        cursor.execute("CREATE TABLE playlists(id PRIMARY KEY, playlist_title, song_name, artist, album)")
     else:
         db, cursor = connect_to_db()
 

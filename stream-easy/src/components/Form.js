@@ -49,7 +49,7 @@ function Form() {
                 Succesful Transfer!
             </h1>
             <Link 
-                to='webplayer'
+                to='/webplayer/playlist-1'
                 className='curr-link'
             >
                 <button

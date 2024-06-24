@@ -44,8 +44,7 @@ def scrape_playlist(playlist_url, cursor, db):
         album_covers = driver.find_elements(By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]/div[2]/main/div[1]/section/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[2]/img')
 
         for img in album_covers:
-            if (img.get_attribute('src') not in src):
-                src.append(img.get_attribute('src'))
+            src.append(img.get_attribute('src'))
 
         # Get song and artist names on the current page
         elements = driver.find_elements(By.CLASS_NAME, '_iQpvk1c9OgRAc8KRTlH')
@@ -53,8 +52,7 @@ def scrape_playlist(playlist_url, cursor, db):
         album_names = driver.find_elements(By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]/div[2]/main/div[1]/section/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[3]')
 
         for i in range(len(album_names)):
-            if (album_names[i].text not in albums):
-                albums.append(album_names[i].text)
+            albums.append(album_names[i].text)
 
         # Iterate through all song elements and append unique ones to array
         for i in range(len(elements)):
@@ -83,6 +81,8 @@ def scrape_playlist(playlist_url, cursor, db):
 
     # Remove recommended songs
     data = data[:-10]
+    albums = albums[:len(data) - 1]
+    src = src[:len(data) - 1]
 
     for i in range(len(albums)): 
         entry = (data[0], data[i + 1][0], data[i + 1][1], albums[i])
@@ -91,7 +91,7 @@ def scrape_playlist(playlist_url, cursor, db):
             if entry == row:
                 add_to_db = False
         if (add_to_db):
-            cursor.execute("INSERT INTO playlists VALUES(?, ?, ?, ?)", entry)
+            cursor.execute("INSERT INTO playlists (playlist_title, song_name, artist, album) VALUES(?, ?, ?, ?)", entry)
             db.commit()
 
     folder = "album-covers"
@@ -103,7 +103,8 @@ def scrape_playlist(playlist_url, cursor, db):
 
     try:
         for i in range(len(src)):
-            urllib.request.urlretrieve(str(src[i]), f"{folder}/{albums[i]}.jpg")
+            file = albums[i].replace(" ", "")
+            urllib.request.urlretrieve(str(src[i]), f"{folder}/{file}.jpg")
     except Exception as e:
         print(len(src))
         print(len(albums))
@@ -182,7 +183,6 @@ def convert_to_youtube(data_frame, username, password, playlist_title):
 
 def download_playlist(data_frame):
     with SB(uc=True) as driver:
-        # Login to google account (bypasses the insecure page)
         driver.get("https://www.youtube.com/")
 
         driver.maximize_window()
@@ -211,7 +211,7 @@ def download_playlist(data_frame):
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([f'{curr_url}'])
 
-        # Clear the search bar so the next song search works correctly
-        search_bar.clear()
+            # Clear the search bar so the next song search works correctly
+            search_bar.clear()
 
         time.sleep(3)
