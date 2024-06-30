@@ -1,0 +1,76 @@
+.song-list-container {
+    width: 60%;
+    height: 90.15vh;
+    background-color: black;
+    color: white;
+    padding-left: 10px;
+    padding-right: 10px;
+    display: block;
+    justify-content: center;
+    align-items: center;
+    overflow-y: scroll;
+}
+
+.title {
+    text-align: center;
+    /* display: block; */
+}
+
+.song-row {
+    width: 100%;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+    grid-gap: 10px;
+    justify-content: left;
+    overflow-x: hidden;
+}
+
+.song-row:hover {
+    background-color: #242424;
+    cursor: pointer;
+    transition: 0.01s;
+}
+
+.index {
+    height: 16px;
+    width: 16px;
+    display: block;
+    margin: auto;
+    padding-left: 20px;
+}
+
+.album-cover {
+    display: block;
+    margin: auto;
+    border-radius: 10px;
+}
+
+.album-img {
+    display: block;
+    margin: auto;
+    height: 40px;
+    width: 40px;
+}
+
+.song-name-artist {
+    width: 50vh;
+    font-size: 1rem;
+    justify-content: center;
+    overflow-x: hidden;
+}
+
+.song-name-artist > p {
+    margin: 5px;
+}
+
+.faint {
+    opacity: 0.7;
+}
+
+album-name {
+    width: 60px;
+    overflow-x: hidden;
+}
