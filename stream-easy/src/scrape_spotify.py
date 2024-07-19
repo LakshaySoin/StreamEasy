@@ -7,12 +7,11 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains as AC
 from seleniumbase import SB
-from selenium.webdriver.chrome.options import Options
+# from selenium.webdriver.chrome.options import Options
 import urllib
 import os
 import time
 import yt_dlp
-# import sqlite3
 
 def scrape_playlist(playlist_url):
     driver = webdriver.Chrome()
@@ -24,6 +23,7 @@ def scrape_playlist(playlist_url):
     # Store song names, artists, and album name/cover
     data = []
     src = []
+    albums = []
 
     # Get the name of spotify playlist to use for youtube playlist
     playlist_name = WebDriverWait(driver, 10).until(
@@ -44,11 +44,15 @@ def scrape_playlist(playlist_url):
         album_covers = driver.find_elements(By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]/div[2]/main/div[1]/section/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[2]/img')
 
         for img in album_covers:
-            if (img.get_attribute('src') not in src):
-                src.append(img.get_attribute('src'))
+            src.append(img.get_attribute('src'))
 
         # Get song and artist names on the current page
         elements = driver.find_elements(By.CLASS_NAME, '_iQpvk1c9OgRAc8KRTlH')
+
+        album_names = driver.find_elements(By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]/div[2]/main/div[1]/section/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[3]')
+
+        for i in range(len(album_names)):
+            albums.append(album_names[i].text)
 
         # Iterate through all song elements and append unique ones to array
         for i in range(len(elements)):
@@ -77,14 +81,44 @@ def scrape_playlist(playlist_url):
 
     # Remove recommended songs
     data = data[:-10]
-
-    for i in range(len(src)):
-        urllib.request.urlretrieve(str(src[i]), "album-covers/cover{}.jpg".format(i))
+    albums = albums[:len(data) - 1]
+    src = src[:len(data) - 1]
 
     # Close the tab
     driver.close()
 
-    return data
+    return [data, albums, src]
+
+def save_data(arr, cursor, db):
+    data = arr[0]
+    albums = arr[1]
+    src = arr[2]
+    for i in range(len(albums)): 
+        entry = (data[0], data[i + 1][0], data[i + 1][1], albums[i])
+        add_to_db = True
+        for row in cursor.execute("SELECT playlist_title, song_name, artist, album FROM " + data[0]):
+            if entry == row:
+                add_to_db = False
+        if (add_to_db):
+            cursor.execute("INSERT INTO " + data[0] + "(playlist_title, song_name, artist, album) VALUES(?, ?, ?, ?)", entry)
+            db.commit()
+
+    folder = "album-covers"
+
+    # Check if the folder already exists
+    if not os.path.exists(folder):
+        # Create the new folder
+        os.makedirs(folder)
+
+    try:
+        for i in range(len(src)):
+            file = albums[i].replace(" ", "")
+            urllib.request.urlretrieve(str(src[i]), f"{folder}/{file}.jpg")
+    except Exception as e:
+        print(len(src))
+        print(len(albums))
+        print("the lengths are different", e)
+
 
 def find_song(driver, search_bar, songs):
     # Search for song
@@ -152,9 +186,8 @@ def convert_to_youtube(data_frame, username, password, playlist_title):
                         add_to_playlist = driver.find_element(By.XPATH, f"//*[contains(text(),'{name}')]")
                         add_to_playlist.click()
 
-def download_playlist(data_frame, playlist_title):
+def download_playlist(data_frame):
     with SB(uc=True) as driver:
-        # Login to google account (bypasses the insecure page)
         driver.get("https://www.youtube.com/")
 
         driver.maximize_window()
@@ -173,7 +206,7 @@ def download_playlist(data_frame, playlist_title):
 
             ydl_opts = {
                 'format': 'm4a/bestaudio/best',
-                'outtmpl': f'./songs/{songs[0].strip(" ")}-{songs[1].strip(" ")}',
+                'outtmpl': f'./songs/{songs[0].replace(" ", "")}-{songs[1].replace(" ", "")}',
                 'postprocessors': [{  # Extract audio using ffmpeg
                     'key': 'FFmpegExtractAudio',
                     'preferredcodec': 'mp3',
@@ -183,9 +216,7 @@ def download_playlist(data_frame, playlist_title):
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download([f'{curr_url}'])
 
-        # Clear the search bar so the next song search works correctly
-        search_bar.clear()
+            # Clear the search bar so the next song search works correctly
+            search_bar.clear()
 
         time.sleep(3)
-
-scrape_playlist("https://open.spotify.com/playlist/1Gw98UgjLS13S51XsO0XAC")

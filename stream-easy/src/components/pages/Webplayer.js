@@ -1,12 +1,10 @@
 import React from 'react'
-import LeftSidebar from '../LeftSidebar.js'
-import Player from '../Player.js'
+import Songs from '../Songs.js'
 
 function Webplayer() {
   return (
     <>
-      <LeftSidebar />
-      <Player />
+      <Songs />
     </>
   )
 }
