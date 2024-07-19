@@ -14,7 +14,7 @@ function App() {
         <Routes>
           <Route path='/' exact element={<Home />} />
           <Route path='/set-up' exact element={<SetUp />} />
-          <Route path='/webplayer/playlists' exact element={<Webplayer />} />
+          <Route path='/webplayer' exact element={<Webplayer />} />
           <Route path='/about' exact element={<About />} />
         </Routes>
       </Router>

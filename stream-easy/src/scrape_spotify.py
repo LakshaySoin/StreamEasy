@@ -94,13 +94,13 @@ def save_data(arr, cursor, db):
     albums = arr[1]
     src = arr[2]
     for i in range(len(albums)): 
-        entry = (data[0], data[i + 1][0], data[i + 1][1], albums[i])
+        entry = (data[i + 1][0], data[i + 1][1], albums[i])
         add_to_db = True
-        for row in cursor.execute("SELECT playlist_title, song_name, artist, album FROM " + data[0]):
+        for row in cursor.execute("SELECT song_name, artist, album FROM " + data[0]):
             if entry == row:
                 add_to_db = False
         if (add_to_db):
-            cursor.execute("INSERT INTO " + data[0] + "(playlist_title, song_name, artist, album) VALUES(?, ?, ?, ?)", entry)
+            cursor.execute("INSERT INTO " + data[0] + "(song_name, artist, album) VALUES(?, ?, ?)", entry)
             db.commit()
 
     folder = "album-covers"
