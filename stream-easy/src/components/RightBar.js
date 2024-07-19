@@ -11,7 +11,7 @@ function RightBar(props) {
             return;
         }
         console.log(songs.playlist_title);
-        fetch('http://127.0.0.1:5000/webplayer/playlists', {
+        fetch('http://127.0.0.1:5000/webplayer', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -29,11 +29,27 @@ function RightBar(props) {
     }, [songs.playlist_title]);
 
     useEffect(() => {
-        fetch("http://127.0.0.1:5000/webplayer/queue")
-            .then(response => response.json())
-            .then(data => setQueue(data))
-            .catch(error => console.error('Error fetching data:', error));
-    }, []);
+        if (songs.playlist_title === null) {
+            return;
+        }
+        console.log(songs.playlist_title);
+        fetch('http://127.0.0.1:5000/queue', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ playlist_title: songs.playlist_title, index: props.index })
+        })
+        .then(response => response.json())
+        .then(data => {
+            setQueue(data);
+            console.log('Success:', data);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('An error occured trying to get the playlist data.');
+        });
+    }, [songs.playlist_title, props.index]);
 
     const setSource = (album) => {
         try {
@@ -42,16 +58,6 @@ function RightBar(props) {
             return null;
         }
     }
-
-    // const queueSetUp = () => {
-    //     fetch('http://127.0.0.1:5000/', {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json'
-    //         },
-    //         body: JSON.stringify({ links: linksArray })
-    //     })
-    // }
 
   return (
     <div className='queue-container'>
@@ -69,7 +75,7 @@ function RightBar(props) {
             <div className='fas fa-ellipsis-h options faint'></div>
         </div>
         <p>Next from: {curr.playlist_title}</p>
-        {songs.map((song, index) => (
+        {queue.map((song, index) => (
             <div key={song.id} aria-rowindex={index + 1} class="queue-row">
                 <div className='song-info'>
                     <div className='album-cover'>

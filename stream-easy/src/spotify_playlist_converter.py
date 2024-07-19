@@ -2,14 +2,12 @@
 
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-from collections import deque
+import dllist
 import scrape_spotify
 import sqlite3
-import os
 
 app = Flask(__name__)
 CORS(app)
-queue = deque() 
 main_db = "stream_easy"
 
 @app.route('/', methods=['POST'])
@@ -20,30 +18,37 @@ def receive_links():
     exec(links)
     return {}
 
-# @app.route("/webplayer/queue", methods=['POST', 'GET'])
-# def get_queue():
-#     if (request.method == 'POST'):
-#         arr = connect_to_db()
-#         cursor = arr[1]
-#         for row in cursor.execute("SELECT playlist_title, song_name, artist, album FROM playlists"):
-#             if (row[1] == request.args['playlist_title']):
-#                 queue.appendleft(row[1])
-#         return queue
-#     if (request.method == 'GET'):
-#         # do stuff
-#         print("hello")
-#     return {}
-
-
-@app.route("/webplayer/playlists", methods=['GET', 'POST'])
-def get_items():
-    # basically create a new db that holds the playlist_titles and if the first call is null, just use the first playlist in this db
+@app.route("/queue", methods=['POST', 'GET'])
+def get_queue():
     data = request.get_json()
     playlist_title = data.get('playlist_title', [])
     if (len(playlist_title) == 0):
         playlist_db, playlist_cursor = connect_to_db(main_db + ".db")
         playlist_title = playlist_cursor.execute(f"SELECT * FROM {main_db}").fetchall()[0][1]
-        print(playlist_title)
+        playlist_db.close()
+    index = data.get('index', [])
+    print(index)
+    db, cursor = connect_to_db(playlist_title + ".db")
+    cursor.row_factory = sqlite3.Row
+    arr = []
+    queue = dllist.DLList()
+    for row in cursor.execute(f"SELECT song_name, artist, album FROM {playlist_title}"):
+        arr.append(row)
+    db.close()
+    curr = (index + 1) % len(arr)
+    while (curr != index):
+        queue.addLast(arr[curr])
+        curr = (curr + 1) % len(arr)
+    return jsonify([dict(item) for item in queue])
+
+
+@app.route("/webplayer", methods=['GET', 'POST'])
+def get_items():
+    data = request.get_json()
+    playlist_title = data.get('playlist_title', [])
+    if (len(playlist_title) == 0):
+        playlist_db, playlist_cursor = connect_to_db(main_db + ".db")
+        playlist_title = playlist_cursor.execute(f"SELECT * FROM {main_db}").fetchall()[0][1]
         playlist_db.close()
     db, cursor = connect_to_db(playlist_title + ".db")
     cursor.row_factory = sqlite3.Row
@@ -72,13 +77,10 @@ def exec(playlist_urls):
         
         db, cursor = connect_to_db(playlist_title + ".db")
 
-        cursor.execute(f"CREATE TABLE IF NOT EXISTS {playlist_title} (id INTEGER PRIMARY KEY AUTOINCREMENT, playlist_title TEXT UNIQUE, song_name, artist, album)")
+        cursor.execute(f"CREATE TABLE IF NOT EXISTS {playlist_title} (id INTEGER PRIMARY KEY AUTOINCREMENT, song_name, artist, album)")
         db.commit()
 
         scrape_spotify.save_data(arr, cursor, db)
-
-        for row in cursor.execute(f"SELECT * FROM {playlist_title}").fetchall():
-            print(row)
 
         playlist_cursor.execute(f"INSERT INTO {main_db} (playlist_title) VALUES(?)", (playlist_title,))
         playlist_db.commit()

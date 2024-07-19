@@ -32,29 +32,19 @@ function Form() {
         <div className='form-container'>
             {!update && <h1>Transfer Spotify Playlists</h1>}
             {!update && <form onSubmit={handleSubmit}>
-                <textarea
-                    type='text'
-                    className='playlists'
+                <textarea type='text' className='playlists' 
                     placeholder={`https://spotify.com/playlist-1\nhttps://spotify.com/playlist-2\n...`}
                     value={links}
                     onChange={(e) => setLinks(e.target.value)}
                 />
-                <input 
-                    type='submit'
-                    className='curr-btn' 
-                />
+                <input type='submit' className='curr-btn' />
             </form>}
             {update && <div className='downloading-container'> 
             <h1>
                 Succesful Transfer!
             </h1>
-            <Link 
-                to='/webplayer/playlists'
-                className='curr-link'
-            >
-                <button
-                    className='curr-btn'
-                >
+            <Link to='/webplayer/playlists' className='curr-link'>
+                <button className='curr-btn'>
                     Go to webplayer!
                 </button>
             </Link>
