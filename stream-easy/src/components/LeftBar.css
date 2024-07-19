@@ -1,8 +1,7 @@
 .left-side-bar {
     background-color: #242424;
     height: 90.15vh;
-    width: 18%;
-    display: flex;
+    flex: 20%;
     overflow-y: auto;
 }
 

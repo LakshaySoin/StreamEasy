@@ -13,7 +13,7 @@ import os
 import time
 import yt_dlp
 
-def scrape_playlist(playlist_url, cursor, db):
+def scrape_playlist(playlist_url):
     driver = webdriver.Chrome()
 
     # Open spotify for data collection
@@ -84,14 +84,23 @@ def scrape_playlist(playlist_url, cursor, db):
     albums = albums[:len(data) - 1]
     src = src[:len(data) - 1]
 
+    # Close the tab
+    driver.close()
+
+    return [data, albums, src]
+
+def save_data(arr, cursor, db):
+    data = arr[0]
+    albums = arr[1]
+    src = arr[2]
     for i in range(len(albums)): 
         entry = (data[0], data[i + 1][0], data[i + 1][1], albums[i])
         add_to_db = True
-        for row in cursor.execute("SELECT playlist_title, song_name, artist, album FROM playlists"):
+        for row in cursor.execute("SELECT playlist_title, song_name, artist, album FROM " + data[0]):
             if entry == row:
                 add_to_db = False
         if (add_to_db):
-            cursor.execute("INSERT INTO playlists (playlist_title, song_name, artist, album) VALUES(?, ?, ?, ?)", entry)
+            cursor.execute("INSERT INTO " + data[0] + "(playlist_title, song_name, artist, album) VALUES(?, ?, ?, ?)", entry)
             db.commit()
 
     folder = "album-covers"
@@ -110,10 +119,6 @@ def scrape_playlist(playlist_url, cursor, db):
         print(len(albums))
         print("the lengths are different", e)
 
-    # Close the tab
-    driver.close()
-
-    return data
 
 def find_song(driver, search_bar, songs):
     # Search for song
@@ -201,7 +206,7 @@ def download_playlist(data_frame):
 
             ydl_opts = {
                 'format': 'm4a/bestaudio/best',
-                'outtmpl': f'./songs/{songs[0].strip(" ")}-{songs[1].strip(" ")}',
+                'outtmpl': f'./songs/{songs[0].replace(" ", "")}-{songs[1].replace(" ", "")}',
                 'postprocessors': [{  # Extract audio using ffmpeg
                     'key': 'FFmpegExtractAudio',
                     'preferredcodec': 'mp3',

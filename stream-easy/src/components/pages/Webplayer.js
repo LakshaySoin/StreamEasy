@@ -1,10 +1,10 @@
 import React from 'react'
-import Player from '../Player.js'
+import Songs from '../Songs.js'
 
 function Webplayer() {
   return (
     <>
-      <Player />
+      <Songs />
     </>
   )
 }

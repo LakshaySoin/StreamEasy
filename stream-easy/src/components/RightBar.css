@@ -1,0 +1,71 @@
+.queue-container {
+    background-color: #242424;
+    display: block;
+    flex: 20%;
+    overflow-y: scroll;
+}
+
+.queue-container > p {
+    color: #fff;
+    padding-left: 10px;
+}
+
+.queue-row {
+    width: 100%;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    padding-left: 10px;
+    display: flex;
+}
+
+.queue-row:hover {
+    /* background-color: #242424; */
+    cursor: pointer;
+    transition: 0.01s;
+}
+
+.song-info {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    grid-gap: 10px;
+    justify-content: left;
+    overflow-x: hidden;
+    width: 80%;
+}
+
+.album-cover {
+    display: block;
+    margin: auto;
+}
+
+.album-img {
+    border-radius: 5px;
+    display: block;
+    margin: auto;
+    height: 40px;
+    width: 40px;
+}
+
+.song-name-artist {
+    width: 50vh;
+    font-size: 1rem;
+    justify-content: center;
+    overflow-x: hidden;
+}
+
+.song-name-artist > p {
+    color: #fff;
+    margin: 5px;
+}
+
+.options {
+    justify-self: center;
+    margin: auto;
+    padding-left: 5px;
+    color: #fff;
+}
+
+.faint {
+    opacity: 0.7;
+}
