@@ -10,13 +10,44 @@ function Songs() {
   const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
   const [data, setData] = useState([]);
   const [num, setNum] = useState(0);
+  const [curr, setCurr] = useState(-1);
   const [play, setPlay] = useState(false);
+  const [skip, setSkip] = useState(false);
+  const [queue, setQueue] = useState([]);
+
+  const handleSkip = (skip) => {
+    setSkip(skip);
+  };
+
+  useEffect(() => {
+      console.log(songs[0]);
+      if (songs.length === 0) {
+        return;
+      }
+      fetch('http://127.0.0.1:5000/skip-song', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          }
+      })
+      .then(response => response.json())
+      .then(data => {
+          const newIndex = data.index;
+          setCurr(newIndex);
+          setData(songs[newIndex]);
+          setQueue(data.queue);
+          console.log('Success:', data);
+      })
+      .catch((error) => {
+          console.error('Error:', error);
+          alert('An error occured trying to skip to the next song.');
+      });
+  }, [skip]);
 
   useEffect(() => {
       if (songs.playlist_title === null) {
           return;
       }
-      console.log(songs.playlist_title);
       fetch('http://127.0.0.1:5000/webplayer', {
           method: 'POST',
           headers: {
@@ -34,24 +65,13 @@ function Songs() {
           alert('An error occured trying to get the playlist data.');
       });
   }, [songs.playlist_title]);
-  
-  // useEffect(() => { 
-  //   fetch("http://127.0.0.1:5000/webplayer/playlists")
-  //       .then(response => response.json())
-  //       .then(data => setSongs(data))
-  //       .catch(error => console.error('Error fetching data:', error));
-  //     }, []
-  //   );
 
-    const handleSong = (index, currSong) => () => {
-      setData(currSong);
-      if (index !== num) {
-        setPlay(!play);
-      } else {
-        setPlay(!play);
-      }
+  const updateCurrSong = (index) => {
       setNum(index);
-    };
+      setCurr(index);
+      setData(songs[index]);
+      setPlay(prevPlay => !prevPlay);
+  }
 
     const getSongLength = (song_name, artist) => {
       try {
@@ -89,7 +109,7 @@ function Songs() {
           </div>
           <div className='song-list'>
             {songs.map((song, index) => (
-                <div onClick={handleSong(index, song)} onMouseEnter={() => handleMouseEnter(index)} onMouseLeave={handleMouseLeave} key={song.id} aria-rowindex={index + 1} class="song-row">
+                <div onClick={() => updateCurrSong(index)} onMouseEnter={() => handleMouseEnter(index)} onMouseLeave={handleMouseLeave} key={index} aria-rowindex={index + 1} class="song-row">
                   <div className={hoveredRowIndex === index ? 'fas fa-play index' : 'index'}>
                       {hoveredRowIndex !== index && index + 1}
                   </div>
@@ -110,8 +130,8 @@ function Songs() {
             ))}
           </div>
       </div>
-      <RightBar songs={songs} index={num} curr={data}/>
-      <SongBar song={data} index={num} start={play} />
+      <RightBar songs={songs} index={num} curr={data} skip={skip} queue={queue} />
+      <SongBar song={data} index={curr} start={play} length={songs.length} updateSong={handleSkip} />
     </div>
   )
 }

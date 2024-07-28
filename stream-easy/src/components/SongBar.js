@@ -8,13 +8,15 @@ function SongBar(props) {
   const [time, setTime] = useState(0);
   const [index, setIndex] = useState(-1);
   const [progress, setProgress] = useState(0);
+  const [skip, setSkip] = useState(true);
   const audioPlayer = useRef(null);
-  console.log(progress);
-  // console.log(document.getElementById('duration').textContent);
 
   useEffect(() => {
     if (props.index !== index) {
       setTime(0);
+      if (audioPlayer.current) {
+        setPlay(true);
+      }
     }
     setIndex(props.index);
   }, [props.index, index]);
@@ -64,7 +66,8 @@ function SongBar(props) {
     }
   };
 
-  useEffect(() => () => {
+  useEffect(() => {
+    console.log(audioPlayer.current);
     if (audioPlayer.current) {
       if (props.start) {
         audioPlayer.current.play();
@@ -102,7 +105,8 @@ function SongBar(props) {
         setProgress(width);
       } else {
         setTime(0);
-        setPlay(0);
+        setPlay(false);
+        document.getElementById("skip").click();
         // skip to next song
       }
     }
@@ -112,6 +116,12 @@ function SongBar(props) {
     const duration = +(length.charAt(0) * 60) + +(length.substring(2, length.length));
     return duration;
   };
+
+  const skipSong = () => {
+    setPlay(false);
+    setSkip(!skip);
+    props.updateSong(skip);
+  }
 
     return (
       <>
@@ -134,7 +144,7 @@ function SongBar(props) {
                   Your browser does not support the audio element.
                 </audio>
               </div>
-            <div className='fas fa-forward faint gap'></div>
+            <div id="skip" onClick={skipSong} className='fas fa-forward faint gap'></div>
             </div>
             <div className='progress-container'>
               <p>{Math.floor(time / 60)}:{Math.floor(time % 60).toString().padStart(2, '0')}</p>
@@ -147,7 +157,7 @@ function SongBar(props) {
           </div>
           </div>
           <div className='misc'>
-            <div className='fas fa-random faint gap'></div>
+            <p>temp</p>
           </div>
         </div>
       </>

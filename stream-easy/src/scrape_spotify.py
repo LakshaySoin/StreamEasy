@@ -89,18 +89,18 @@ def scrape_playlist(playlist_url):
 
     return [data, albums, src]
 
-def save_data(arr, cursor, db):
+def save_data(arr, cursor, db, playlist_title):
     data = arr[0]
     albums = arr[1]
     src = arr[2]
     for i in range(len(albums)): 
-        entry = (data[i + 1][0], data[i + 1][1], albums[i])
+        entry = (data[i + 1][0], data[i + 1][1], albums[i], playlist_title)
         add_to_db = True
         for row in cursor.execute("SELECT song_name, artist, album FROM " + data[0]):
             if entry == row:
                 add_to_db = False
         if (add_to_db):
-            cursor.execute("INSERT INTO " + data[0] + "(song_name, artist, album) VALUES(?, ?, ?)", entry)
+            cursor.execute("INSERT INTO " + data[0] + "(song_name, artist, album, playlist_title) VALUES(?, ?, ?, ?)", entry)
             db.commit()
 
     folder = "album-covers"

@@ -1,11 +1,13 @@
 .queue-container {
     background-color: #242424;
+    height: 90.15vh;
     display: block;
     flex: 20%;
     overflow-y: scroll;
+    overflow-x: hidden;
 }
 
-.queue-container > p {
+.queue-text {
     color: #fff;
     padding-left: 10px;
 }
@@ -23,6 +25,21 @@
     /* background-color: #242424; */
     cursor: pointer;
     transition: 0.01s;
+}
+
+.shuffle-playlist {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+}
+
+.shuffle-button {
+    color: #fff;
+    justify-self: center;
+    margin: auto;
+}
+
+.clicked {
+    color: rgb(69, 255, 69);
 }
 
 .song-info {

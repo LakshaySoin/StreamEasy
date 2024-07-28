@@ -5,10 +5,12 @@ from flask_cors import CORS
 import dllist
 import scrape_spotify
 import sqlite3
+import numpy as np
 
 app = Flask(__name__)
 CORS(app)
 main_db = "stream_easy"
+queue = dllist.DLList()
 
 @app.route('/', methods=['POST'])
 def receive_links():
@@ -18,29 +20,44 @@ def receive_links():
     exec(links)
     return {}
 
-@app.route("/queue", methods=['POST', 'GET'])
-def get_queue():
-    data = request.get_json()
-    playlist_title = data.get('playlist_title', [])
+@app.route("/make-queue", methods=['POST', 'GET'])
+def make_queue(shuffle=False, playlist_title=None, index=None):
     if (len(playlist_title) == 0):
         playlist_db, playlist_cursor = connect_to_db(main_db + ".db")
         playlist_title = playlist_cursor.execute(f"SELECT * FROM {main_db}").fetchall()[0][1]
         playlist_db.close()
-    index = data.get('index', [])
-    print(index)
     db, cursor = connect_to_db(playlist_title + ".db")
     cursor.row_factory = sqlite3.Row
     arr = []
-    queue = dllist.DLList()
-    for row in cursor.execute(f"SELECT song_name, artist, album FROM {playlist_title}"):
+    for row in cursor.execute(f"SELECT song_name, artist, album, id FROM {playlist_title}"):
         arr.append(row)
     db.close()
-    curr = (index + 1) % len(arr)
-    while (curr != index):
-        queue.addLast(arr[curr])
-        curr = (curr + 1) % len(arr)
+    temp = arr[index + 1:] + arr[:index]
+    if (shuffle):
+        np.random.shuffle(temp)
+    queue.clear()
+    for item in temp:
+        queue.addLast(item)
     return jsonify([dict(item) for item in queue])
 
+@app.route("/skip-song", methods=['POST', 'GET'])
+def get_queue():
+    if (queue.isEmpty()):
+        return {} 
+    newCurrSong = dict(queue.getNext())
+    newIndex = newCurrSong['id'] - 1
+    return jsonify({
+        'queue': [dict(item) for item in queue],
+        'index': newIndex
+    })
+
+@app.route("/shuffle", methods=['POST'])
+def shuffle_playlist():
+    data = request.get_json()
+    shuffle = data.get('shuffle', [])
+    playlist_title = data.get('playlist_title', [])
+    index = data.get('index', [])
+    return make_queue(shuffle, playlist_title, index)
 
 @app.route("/webplayer", methods=['GET', 'POST'])
 def get_items():
@@ -77,10 +94,10 @@ def exec(playlist_urls):
         
         db, cursor = connect_to_db(playlist_title + ".db")
 
-        cursor.execute(f"CREATE TABLE IF NOT EXISTS {playlist_title} (id INTEGER PRIMARY KEY AUTOINCREMENT, song_name, artist, album)")
+        cursor.execute(f"CREATE TABLE IF NOT EXISTS {playlist_title} (id INTEGER PRIMARY KEY AUTOINCREMENT, song_name, artist, album, playlist_title)")
         db.commit()
 
-        scrape_spotify.save_data(arr, cursor, db)
+        scrape_spotify.save_data(arr, cursor, db, playlist_title)
 
         playlist_cursor.execute(f"INSERT INTO {main_db} (playlist_title) VALUES(?)", (playlist_title,))
         playlist_db.commit()

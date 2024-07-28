@@ -1,44 +1,26 @@
-import React, { useEffect, useState } from 'react'
+import React, {  useEffect, useState } from 'react'
 import './RightBar.css'
 
-function RightBar(props) {
+const RightBar = (props) => {
     const songs = props.songs;
     const curr = props.curr;
     const [queue, setQueue] = useState([]);
+    const [shuffle, setShuffle] = useState(false);
+
+    const shufflePlaylist = () => {
+        setShuffle(!shuffle);
+    };
 
     useEffect(() => {
         if (songs.playlist_title === null) {
             return;
         }
-        console.log(songs.playlist_title);
-        fetch('http://127.0.0.1:5000/webplayer', {
+        fetch('http://127.0.0.1:5000/shuffle', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ playlist_title: songs.playlist_title })
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Success:', data);
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-            alert('An error occured trying to get the playlist data.');
-        });
-    }, [songs.playlist_title]);
-
-    useEffect(() => {
-        if (songs.playlist_title === null) {
-            return;
-        }
-        console.log(songs.playlist_title);
-        fetch('http://127.0.0.1:5000/queue', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ playlist_title: songs.playlist_title, index: props.index })
+            body: JSON.stringify({ shuffle: false, playlist_title: songs.playlist_title, index: props.index })
         })
         .then(response => response.json())
         .then(data => {
@@ -51,6 +33,32 @@ function RightBar(props) {
         });
     }, [songs.playlist_title, props.index]);
 
+    useEffect(() => {
+        if (songs.playlist_title === null) {
+            return;
+        }
+        fetch('http://127.0.0.1:5000/shuffle', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ shuffle: shuffle, playlist_title: songs.playlist_title, index: props.index })
+        })
+        .then(response => response.json())
+        .then(data => {
+            setQueue(data);
+            console.log('Success:', data);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('An error occured trying to get the playlist data.');
+        });
+    }, [shuffle]);
+
+    useEffect(() => {
+        setQueue(props.queue);
+    }, [props.queue]);
+
     const setSource = (album) => {
         try {
             return require(`../album-covers/${album.replace(/ /g, '')}.jpg`);
@@ -61,7 +69,7 @@ function RightBar(props) {
 
   return (
     <div className='queue-container'>
-        <p>Now Playing</p>
+        <p className='queue-text'>Now Playing</p>
         <div className='queue-row'>
             <div className='song-info'>
                 <div className='album-cover'>
@@ -74,7 +82,10 @@ function RightBar(props) {
             </div>
             <div className='fas fa-ellipsis-h options faint'></div>
         </div>
-        <p>Next from: {curr.playlist_title}</p>
+        <div className='shuffle-playlist'>
+            <p className='queue-text'>Next from: {curr.playlist_title}</p>
+            <div onClick={shufflePlaylist} className={shuffle ? 'fas fa-random faint clicked shuffle-button' : 'fas fa-random faint shuffle-button'}></div>
+        </div>
         {queue.map((song, index) => (
             <div key={song.id} aria-rowindex={index + 1} class="queue-row">
                 <div className='song-info'>
