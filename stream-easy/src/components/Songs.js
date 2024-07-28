@@ -12,19 +12,23 @@ function Songs() {
   const [num, setNum] = useState(0);
   const [curr, setCurr] = useState(-1);
   const [play, setPlay] = useState(false);
-  const [skip, setSkip] = useState(false);
+  const [skipForward, setSkipForward] = useState(false);
+  const [skipBackward, setSkipBackward] = useState(false);
   const [queue, setQueue] = useState([]);
 
-  const handleSkip = (skip) => {
-    setSkip(skip);
+  const handleSkipForward = (skipForward) => {
+    setSkipForward(skipForward);
+  };
+
+  const handleSkipBackward = (skipBackward) => {
+    setSkipBackward(skipBackward);
   };
 
   useEffect(() => {
-      console.log(songs[0]);
       if (songs.length === 0) {
         return;
       }
-      fetch('http://127.0.0.1:5000/skip-song', {
+      fetch('http://127.0.0.1:5000/skip-song-forward', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json'
@@ -42,7 +46,31 @@ function Songs() {
           console.error('Error:', error);
           alert('An error occured trying to skip to the next song.');
       });
-  }, [skip]);
+  }, [skipForward]);
+
+  useEffect(() => {
+      if (songs.length === 0) {
+        return;
+      }
+      fetch('http://127.0.0.1:5000/skip-song-backward', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          }
+      })
+      .then(response => response.json())
+      .then(data => {
+          const newIndex = data.index;
+          setCurr(newIndex);
+          setData(songs[newIndex]);
+          setQueue(data.queue);
+          console.log('Success:', data);
+      })
+      .catch((error) => {
+          console.error('Error:', error);
+          alert('An error occured trying to skip to the next song.');
+      });
+  }, [skipBackward]);
 
   useEffect(() => {
       if (songs.playlist_title === null) {
@@ -130,8 +158,8 @@ function Songs() {
             ))}
           </div>
       </div>
-      <RightBar songs={songs} index={num} curr={data} skip={skip} queue={queue} />
-      <SongBar song={data} index={curr} start={play} length={songs.length} updateSong={handleSkip} />
+      <RightBar songs={songs} index={num} curr={data} skip={skipForward} queue={queue} />
+      <SongBar song={data} index={curr} start={play} length={songs.length} updateSongForward={handleSkipForward} updateSongBackward={handleSkipBackward} />
     </div>
   )
 }

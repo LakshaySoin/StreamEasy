@@ -43,6 +43,8 @@ class DLList:
 
     def getPrev(self):
         self.curr = self.curr.prev
+        if (self.curr == self.first):
+            self.curr = self.curr.prev
         val = self.curr.val
         return val
 

@@ -32,7 +32,7 @@ def make_queue(shuffle=False, playlist_title=None, index=None):
     for row in cursor.execute(f"SELECT song_name, artist, album, id FROM {playlist_title}"):
         arr.append(row)
     db.close()
-    temp = arr[index + 1:] + arr[:index]
+    temp = arr[index + 1:] + arr[:index + 1]
     if (shuffle):
         np.random.shuffle(temp)
     queue.clear()
@@ -40,11 +40,22 @@ def make_queue(shuffle=False, playlist_title=None, index=None):
         queue.addLast(item)
     return jsonify([dict(item) for item in queue])
 
-@app.route("/skip-song", methods=['POST', 'GET'])
-def get_queue():
+@app.route("/skip-song-forward", methods=['POST', 'GET'])
+def get_queue_forward():
     if (queue.isEmpty()):
         return {} 
     newCurrSong = dict(queue.getNext())
+    newIndex = newCurrSong['id'] - 1
+    return jsonify({
+        'queue': [dict(item) for item in queue],
+        'index': newIndex
+    })
+
+@app.route("/skip-song-backward", methods=['POST', 'GET'])
+def get_queue_backword():
+    if (queue.isEmpty()):
+        return {} 
+    newCurrSong = dict(queue.getPrev())
     newIndex = newCurrSong['id'] - 1
     return jsonify({
         'queue': [dict(item) for item in queue],

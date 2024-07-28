@@ -8,7 +8,8 @@ function SongBar(props) {
   const [time, setTime] = useState(0);
   const [index, setIndex] = useState(-1);
   const [progress, setProgress] = useState(0);
-  const [skip, setSkip] = useState(true);
+  const [skipForward, setSkipForward] = useState(true);
+  const [skipBackward, setSkipBackward] = useState(true);
   const audioPlayer = useRef(null);
 
   useEffect(() => {
@@ -106,8 +107,8 @@ function SongBar(props) {
       } else {
         setTime(0);
         setPlay(false);
-        document.getElementById("skip").click();
-        // skip to next song
+        document.getElementById("skipForward").click();
+        // skip forward to next song
       }
     }
   }, [time]);
@@ -117,10 +118,16 @@ function SongBar(props) {
     return duration;
   };
 
-  const skipSong = () => {
+  const skipSongForward = () => {
     setPlay(false);
-    setSkip(!skip);
-    props.updateSong(skip);
+    setSkipForward(!skipForward);
+    props.updateSongForward(skipForward);
+  }
+
+  const skipSongBackward = () => {
+    setPlay(false);
+    setSkipBackward(!skipBackward);
+    props.updateSongBackward(skipBackward);
   }
 
     return (
@@ -137,14 +144,14 @@ function SongBar(props) {
           </div>
           <div className='controls'>
             <div className='play-start'>
-              <div className='fas fa-backward faint gap'></div>
+              <div id="skipBackward" onClick={skipSongBackward} className='fas fa-backward faint gap'></div>
               <div onClick={handlePlayClick} className={play ? 'fas fa-pause faint gap' : 'fas fa-play faint gap'}>
                 <audio ref={audioPlayer} key={props.index}>
                   <source src={setSong(song.song_name, song.artist)} type="audio/mpeg" />
                   Your browser does not support the audio element.
                 </audio>
               </div>
-            <div id="skip" onClick={skipSong} className='fas fa-forward faint gap'></div>
+            <div id="skipForward" onClick={skipSongForward} className='fas fa-forward faint gap'></div>
             </div>
             <div className='progress-container'>
               <p>{Math.floor(time / 60)}:{Math.floor(time % 60).toString().padStart(2, '0')}</p>
