@@ -30,6 +30,18 @@ class DLList:
         node = Node(val)
         self.addNode(curr, node)
 
+    def removeNode(self, curr):
+        curr.prev.next = curr.next
+        curr.next.prev = curr.prev
+
+    def remove(self, index):
+        num = 0
+        curr = self.first
+        while (num != index):
+            curr = curr.next
+            num += 1
+        self.removeNode(curr)
+
     def addLast(self, val):
         node = Node(val)
         self.addNode(self.first, node)

@@ -15,6 +15,8 @@ function Songs() {
   const [skipForward, setSkipForward] = useState(false);
   const [skipBackward, setSkipBackward] = useState(false);
   const [queue, setQueue] = useState([]);
+  const [manualQueue, setManualQueue] = useState([]);
+  const [playlist, setPlaylist] = useState("");
 
   const handleSkipForward = (skipForward) => {
     setSkipForward(skipForward);
@@ -25,63 +27,103 @@ function Songs() {
   };
 
   useEffect(() => {
+    // basically make the data have boolean value to either set the manual queue or the regular queue, change the jsonify basically
       if (songs.length === 0) {
         return;
       }
-      fetch('http://127.0.0.1:5000/skip-song-forward', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json'
-          }
-      })
-      .then(response => response.json())
-      .then(data => {
-          const newIndex = data.index;
-          setCurr(newIndex);
-          setData(songs[newIndex]);
-          setQueue(data.queue);
-          console.log('Success:', data);
-      })
-      .catch((error) => {
-          console.error('Error:', error);
-          alert('An error occured trying to skip to the next song.');
-      });
+      if (manualQueue.length === 0) {
+        fetch('http://127.0.0.1:5000/skip-song-forward', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const newIndex = data.index;
+            setCurr(newIndex);
+            setData(data.song);
+            setQueue(data.queue);
+            console.log('Success:', data);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('An error occured trying to skip to the next song.');
+        });
+      } else {
+        fetch('http://127.0.0.1:5000/skip-song-forward-manual', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const newIndex = data.index;
+            setCurr(newIndex);
+            setData(data.song);
+            setManualQueue(data.queue);
+            console.log('Success:', data);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('An error occured trying to skip to the next song.');
+        });
+      }
   }, [skipForward]);
 
   useEffect(() => {
       if (songs.length === 0) {
         return;
       }
-      fetch('http://127.0.0.1:5000/skip-song-backward', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json'
-          }
-      })
-      .then(response => response.json())
-      .then(data => {
-          const newIndex = data.index;
-          setCurr(newIndex);
-          setData(songs[newIndex]);
-          setQueue(data.queue);
-          console.log('Success:', data);
-      })
-      .catch((error) => {
-          console.error('Error:', error);
-          alert('An error occured trying to skip to the next song.');
-      });
+      if (manualQueue.length === 0) {
+        fetch('http://127.0.0.1:5000/skip-song-backward', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const newIndex = data.index;
+            setCurr(newIndex);
+            setData(data.song);
+            setQueue(data.queue);
+            console.log('Success:', data);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('An error occured trying to skip to the next song.');
+        });
+      } else {
+        fetch('http://127.0.0.1:5000/skip-song-backward-manual', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const newIndex = data.index;
+            setCurr(newIndex);
+            setData(data.song);
+            setQueue(data.queue);
+            console.log('Success:', data);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert('An error occured trying to skip to the next song.');
+        });
+      }
   }, [skipBackward]);
 
   useEffect(() => {
-      if (songs.playlist_title === null) {
-          return;
-      }
       fetch('http://127.0.0.1:5000/webplayer', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ playlist_title: songs.playlist_title })
+          body: JSON.stringify({ playlist_title: playlist })
       })
       .then(response => response.json())
       .then(data => {
@@ -92,7 +134,26 @@ function Songs() {
           console.error('Error:', error);
           alert('An error occured trying to get the playlist data.');
       });
-  }, [songs.playlist_title]);
+  }, [playlist]);
+
+  useEffect(() => {
+      fetch('http://127.0.0.1:5000/shuffle', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ shuffle: false, playlist_title: playlist, index: 0 })
+      })
+      .then(response => response.json())
+      .then(data => {
+          setQueue(data);
+          console.log('Success:', data);
+      })
+      .catch((error) => {
+          console.error('Error:', error);
+          alert('An error occured trying to get the playlist data.');
+      });
+  }, [playlist]);
 
   const updateCurrSong = (index) => {
       setNum(index);
@@ -119,25 +180,53 @@ function Songs() {
 
   const setSource = (album) => {
     try {
-      return require(`../album-covers/${album.replace(/ /g, '')}.jpg`);
+      return require(`../album-covers/${album.replace(/ /g, '').replace('?', '').replace('!', '')}.jpg`);
     }
     catch (err) {
       return null;
     }
   }
 
+  const updateCurrPlaylist = (curr_playlist) => {
+    setPlaylist(curr_playlist.replace(/ /g, ""));
+  }
+
+  const handleManualQueue = (newQueue) => {
+    setManualQueue(newQueue);
+  }
+
+  const addToQueue = (id) => {
+      fetch('http://127.0.0.1:5000/add-to-queue', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ playlist_title: playlist, id: id })
+      })
+      .then(response => response.json())
+      .then(data => {
+          setManualQueue(data);
+          console.log('Success:', data);
+      })
+      .catch((error) => {
+          console.error('Error:', error);
+          alert('An error occured trying to get the playlist data.');
+      });
+  };
+
+
   const playlistTitle = songs.length > 0 ? songs[0].playlist_title : '';
 
   return (
     <div className="main-container">
-      <LeftBar />
+      <LeftBar updateCurrPlaylist={updateCurrPlaylist} />
       <div className='song-list-container'>
           <div className='title'>
               <h1>{playlistTitle}</h1>
           </div>
           <div className='song-list'>
             {songs.map((song, index) => (
-                <div onClick={() => updateCurrSong(index)} onMouseEnter={() => handleMouseEnter(index)} onMouseLeave={handleMouseLeave} key={index} aria-rowindex={index + 1} class="song-row">
+                <div onDoubleClick={() => updateCurrSong(index)} onMouseEnter={() => handleMouseEnter(index)} onMouseLeave={handleMouseLeave} key={index} aria-rowindex={index + 1} class="song-row">
                   <div className={hoveredRowIndex === index ? 'fas fa-play index' : 'index'}>
                       {hoveredRowIndex !== index && index + 1}
                   </div>
@@ -151,14 +240,17 @@ function Songs() {
                   <div className={hoveredRowIndex !== index ? 'album-name faint' : 'album-name'}>
                       <p>{song.album}</p>
                   </div>
-                  <div className={hoveredRowIndex !== index ? 'duration faint' : 'duration'}>
+                  <div style={{'padding-right': '30px'}} className={hoveredRowIndex !== index ? 'duration faint' : 'duration'}>
                     <Duration audioPath={getSongLength(song.song_name, song.artist)} />
                   </div>
+                  <button onClick={() => addToQueue(song.id)} className='add-queue'>
+                    <i className='fas fa-plus icon'></i>
+                  </button>
                 </div>
             ))}
           </div>
       </div>
-      <RightBar songs={songs} index={num} curr={data} skip={skipForward} queue={queue} />
+      <RightBar songs={songs} index={num} curr={data} skip={skipForward} queue={queue} manualQueue={manualQueue} playlist={playlist} updateManualQueue={handleManualQueue} />
       <SongBar song={data} index={curr} start={play} length={songs.length} updateSongForward={handleSkipForward} updateSongBackward={handleSkipBackward} />
     </div>
   )

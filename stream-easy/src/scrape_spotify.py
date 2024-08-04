@@ -43,16 +43,12 @@ def scrape_playlist(playlist_url):
         # Get album cover image
         album_covers = driver.find_elements(By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]/div[2]/main/div[1]/section/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[2]/img')
 
-        for img in album_covers:
-            src.append(img.get_attribute('src'))
-
         # Get song and artist names on the current page
         elements = driver.find_elements(By.CLASS_NAME, '_iQpvk1c9OgRAc8KRTlH')
 
         album_names = driver.find_elements(By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]/div[2]/main/div[1]/section/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[3]')
 
-        for i in range(len(album_names)):
-            albums.append(album_names[i].text)
+        skips = []
 
         # Iterate through all song elements and append unique ones to array
         for i in range(len(elements)):
@@ -61,6 +57,26 @@ def scrape_playlist(playlist_url):
             arr = [song_name, artist_name]
             if arr not in data:
                 data.append(arr)
+            else:
+                skips.append(i)
+
+        for i in range(len(album_names)):
+            if (i not in skips):
+                albums.append(album_names[i].text)
+
+        for i in range(len(album_covers)):
+            if (i not in skips):
+                img = album_covers[i]
+                src.append(img.get_attribute('src'))
+
+        for i in range(len(src)):
+            print(data[i + 1])
+            print(albums[i])
+            print(src[i])
+
+        # print(len(data))
+        # print(len(albums))
+        # print(len(src))
 
         # Container to scroll within
         scroll_box = WebDriverWait(driver, 10).until(
@@ -68,10 +84,10 @@ def scrape_playlist(playlist_url):
         )
 
         # Move down webpage (this doesn't accidently click album names)
-        action.click_and_hold(scroll_box).drag_and_drop_by_offset(scroll_box, 0, 100).perform()
+        action.click_and_hold(scroll_box).drag_and_drop_by_offset(scroll_box, 0, 50).perform()
 
         # Calculate new scroll height and compare with last scroll height
-        curr_length += 100
+        curr_length += 50
 
         time.sleep(1)
 
@@ -84,23 +100,29 @@ def scrape_playlist(playlist_url):
     albums = albums[:len(data) - 1]
     src = src[:len(data) - 1]
 
+    print("---------------")
+    print(len(data))
+    print(len(albums))
+    print(len(src))
+
     # Close the tab
     driver.close()
 
     return [data, albums, src]
 
-def save_data(arr, cursor, db, playlist_title):
+def save_data(arr, cursor, db, playlist_title_original):
+    playlist_title = playlist_title_original.replace(" ", "")
     data = arr[0]
     albums = arr[1]
     src = arr[2]
     for i in range(len(albums)): 
-        entry = (data[i + 1][0], data[i + 1][1], albums[i], playlist_title)
+        entry = (data[i + 1][0], data[i + 1][1], albums[i], playlist_title_original)
         add_to_db = True
-        for row in cursor.execute("SELECT song_name, artist, album FROM " + data[0]):
+        for row in cursor.execute("SELECT song_name, artist, album, playlist_title FROM " + playlist_title):
             if entry == row:
                 add_to_db = False
         if (add_to_db):
-            cursor.execute("INSERT INTO " + data[0] + "(song_name, artist, album, playlist_title) VALUES(?, ?, ?, ?)", entry)
+            cursor.execute("INSERT INTO " + playlist_title + "(song_name, artist, album, playlist_title) VALUES(?, ?, ?, ?)", entry)
             db.commit()
 
     folder = "album-covers"
@@ -112,7 +134,7 @@ def save_data(arr, cursor, db, playlist_title):
 
     try:
         for i in range(len(src)):
-            file = albums[i].replace(" ", "")
+            file = albums[i].replace(" ", "").replace("?", "").replace("!", "")
             urllib.request.urlretrieve(str(src[i]), f"{folder}/{file}.jpg")
     except Exception as e:
         print(len(src))
@@ -206,7 +228,7 @@ def download_playlist(data_frame):
 
             ydl_opts = {
                 'format': 'm4a/bestaudio/best',
-                'outtmpl': f'./songs/{songs[0].replace(" ", "")}-{songs[1].replace(" ", "")}',
+                'outtmpl': f'./songs/{songs[0].replace(" ", "").replace("?", "").replace("!", "")}-{songs[1].replace(" ", "").replace("?", "").replace("!", "")}',
                 'postprocessors': [{  # Extract audio using ffmpeg
                     'key': 'FFmpegExtractAudio',
                     'preferredcodec': 'mp3',

@@ -40,7 +40,7 @@ function SongBar(props) {
 
   const setSource = (album) => {
       try {
-          return require(`../album-covers/${album.replace(/ /g, '')}.jpg`);
+          return require(`../album-covers/${album.replace(/ /g, '').replace('?', '').replace('!', '')}.jpg`);
       } catch (err) {
           return null;
       }
@@ -48,7 +48,7 @@ function SongBar(props) {
 
   const setSong = (song_name, artist) => {
       try {
-          return require(`../songs/${song_name.replace(/ /g, '') + "-" + artist.replace(/ /g, '')}.mp3`);
+          return require(`../songs/${song_name.replace(/ /g, '').replace('?', '').replace('!', '') + "-" + artist.replace(/ /g, '').replace('?', '').replace('!', '')}.mp3`);
       } catch (err) {
           return null;
       }
