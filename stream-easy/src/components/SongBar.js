@@ -8,13 +8,16 @@ function SongBar(props) {
   const [time, setTime] = useState(0);
   const [index, setIndex] = useState(-1);
   const [progress, setProgress] = useState(0);
+  const [skipForward, setSkipForward] = useState(true);
+  const [skipBackward, setSkipBackward] = useState(true);
   const audioPlayer = useRef(null);
-  console.log(progress);
-  // console.log(document.getElementById('duration').textContent);
 
   useEffect(() => {
     if (props.index !== index) {
       setTime(0);
+      if (audioPlayer.current) {
+        setPlay(true);
+      }
     }
     setIndex(props.index);
   }, [props.index, index]);
@@ -37,7 +40,7 @@ function SongBar(props) {
 
   const setSource = (album) => {
       try {
-          return require(`../album-covers/${album.replace(/ /g, '')}.jpg`);
+          return require(`../album-covers/${album.replace(/ /g, '').replace('?', '').replace('!', '')}.jpg`);
       } catch (err) {
           return null;
       }
@@ -45,7 +48,7 @@ function SongBar(props) {
 
   const setSong = (song_name, artist) => {
       try {
-          return require(`../songs/${song_name.replace(/ /g, '') + "-" + artist.replace(/ /g, '')}.mp3`);
+          return require(`../songs/${song_name.replace(/ /g, '').replace('?', '').replace('!', '') + "-" + artist.replace(/ /g, '').replace('?', '').replace('!', '')}.mp3`);
       } catch (err) {
           return null;
       }
@@ -64,7 +67,8 @@ function SongBar(props) {
     }
   };
 
-  useEffect(() => () => {
+  useEffect(() => {
+    console.log(audioPlayer.current);
     if (audioPlayer.current) {
       if (props.start) {
         audioPlayer.current.play();
@@ -102,8 +106,9 @@ function SongBar(props) {
         setProgress(width);
       } else {
         setTime(0);
-        setPlay(0);
-        // skip to next song
+        setPlay(false);
+        document.getElementById("skipForward").click();
+        // skip forward to next song
       }
     }
   }, [time]);
@@ -112,6 +117,18 @@ function SongBar(props) {
     const duration = +(length.charAt(0) * 60) + +(length.substring(2, length.length));
     return duration;
   };
+
+  const skipSongForward = () => {
+    setPlay(false);
+    setSkipForward(!skipForward);
+    props.updateSongForward(skipForward);
+  }
+
+  const skipSongBackward = () => {
+    setPlay(false);
+    setSkipBackward(!skipBackward);
+    props.updateSongBackward(skipBackward);
+  }
 
     return (
       <>
@@ -127,14 +144,14 @@ function SongBar(props) {
           </div>
           <div className='controls'>
             <div className='play-start'>
-              <div className='fas fa-backward faint gap'></div>
+              <div id="skipBackward" onClick={skipSongBackward} className='fas fa-backward faint gap'></div>
               <div onClick={handlePlayClick} className={play ? 'fas fa-pause faint gap' : 'fas fa-play faint gap'}>
                 <audio ref={audioPlayer} key={props.index}>
                   <source src={setSong(song.song_name, song.artist)} type="audio/mpeg" />
                   Your browser does not support the audio element.
                 </audio>
               </div>
-            <div className='fas fa-forward faint gap'></div>
+            <div id="skipForward" onClick={skipSongForward} className='fas fa-forward faint gap'></div>
             </div>
             <div className='progress-container'>
               <p>{Math.floor(time / 60)}:{Math.floor(time % 60).toString().padStart(2, '0')}</p>
@@ -147,7 +164,7 @@ function SongBar(props) {
           </div>
           </div>
           <div className='misc'>
-            <div className='fas fa-random faint gap'></div>
+            <p>temp</p>
           </div>
         </div>
       </>

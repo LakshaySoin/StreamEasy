@@ -5,7 +5,7 @@
 
 .song-list-container {
     flex: 60%;
-    height: 90.15vh;
+    height: 75vh;
     background-color: #121212;
     color: white;
     padding-left: 10px;
@@ -26,7 +26,7 @@
     padding-bottom: 5px;
     margin-bottom: 10px;
     display: grid;
-    grid-template-columns: repeat(5, auto);
+    grid-template-columns: repeat(6, auto);
     grid-gap: 10px;
     justify-content: left;
     overflow-x: hidden;
@@ -75,9 +75,37 @@
 
 .album-name {
     width: 40vh;
+    max-height: 35px;
     overflow-x: hidden;
+    overflow-y: hidden;
 }
 
 .duration {
     justify-content: left;
+}
+
+.add-queue {
+    justify-content: center;
+    margin: auto;
+    height: 32px;
+    width: 32px;
+    background-color: transparent;
+    border: transparent;
+    border-radius: 50%;
+    -moz-border-radius: 50%;
+    -webkit-border-radius: 50%;
+}
+
+.add-queue:hover {
+    opacity: 1;
+    background-color: rgb(187, 187, 187);
+    transition: 0.1s;
+    cursor: pointer;
+}
+
+.icon {
+    justify-content: center;
+    margin: auto;
+    color: #fff;
+    opacity: 0.7;
 }
