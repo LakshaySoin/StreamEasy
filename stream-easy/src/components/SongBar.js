@@ -164,7 +164,6 @@ function SongBar(props) {
           </div>
           </div>
           <div className='misc'>
-            <p>temp</p>
           </div>
         </div>
       </>

@@ -1,7 +1,7 @@
 import React from 'react'
 import WebPlayerParent from '../WebPlayerParent.js'
 
-function Webplayer() {
+function WebPlayer() {
   return (
     <>
       <WebPlayerParent />
@@ -9,4 +9,4 @@ function Webplayer() {
   )
 }
 
-export default Webplayer
+export default WebPlayer

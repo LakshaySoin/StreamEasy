@@ -14,7 +14,9 @@ function WebPlayer() {
   const [skipBackward, setSkipBackward] = useState(false);
   const [queue, setQueue] = useState([]);
   const [manualQueue, setManualQueue] = useState([]);
+  const playlistTitle = songs.length > 0 ? songs[0].playlist_title : '';
   const [playlist, setPlaylist] = useState("");
+  const [displayPlaylist, setDisplayPlaylist] = useState("");
 
   const handleSkipForward = (skipForward) => {
     setSkipForward(skipForward);
@@ -126,7 +128,6 @@ function WebPlayer() {
       .then(response => response.json())
       .then(data => {
           setSongs(data);
-          console.log("baby i need u");
           console.log('Success:', data);
       })
       .catch((error) => {
@@ -172,6 +173,7 @@ function WebPlayer() {
 
   const updateCurrPlaylist = (curr_playlist) => {
     setPlaylist(curr_playlist.replace(/ /g, ""));
+    setDisplayPlaylist(curr_playlist);
   }
 
   const handleManualQueue = (newQueue) => {
@@ -181,7 +183,7 @@ function WebPlayer() {
   return (
     <div className="main-container">
       <LeftBar updateCurrPlaylist={updateCurrPlaylist} />
-      <Songs songs={songs} playlist={playlist} handleManualQueue={handleManualQueue} updateCurrSong={updateCurrSong} />
+      <Songs songs={songs} playlist={playlist !== "" ? displayPlaylist : playlistTitle} handleManualQueue={handleManualQueue} updateCurrSong={updateCurrSong} />
       <RightBar songs={songs} index={num} curr={data} skip={skipForward} queue={queue} manualQueue={manualQueue} playlist={playlist} updateManualQueue={handleManualQueue} />
       <SongBar song={data} index={curr} start={play} length={songs.length} updateSongForward={handleSkipForward} updateSongBackward={handleSkipBackward} />
     </div>

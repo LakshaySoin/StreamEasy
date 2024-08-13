@@ -4,8 +4,6 @@ import Duration from './Duration';
 
 function Songs(props) {
   const songs = props.songs;
-  console.log(songs);
-  console.log(props);
   const playlist = props.playlist;
   const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
 
@@ -63,7 +61,7 @@ function Songs(props) {
             <h1>{playlist}</h1>
         </div>
         <div className='song-list'>
-          {songs.map((song, index) => (
+          {Array.isArray(songs) && songs.map((song, index) => (
               <div onDoubleClick={() => updateCurrSong(index)} onMouseEnter={() => handleMouseEnter(index)} onMouseLeave={handleMouseLeave} key={index} aria-rowindex={index + 1} class="song-row">
                 <div className={hoveredRowIndex === index ? 'fas fa-play index' : 'index'}>
                     {hoveredRowIndex !== index && index + 1}

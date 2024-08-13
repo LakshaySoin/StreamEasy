@@ -28,15 +28,27 @@ def check_playlists_exists():
         return True
     return False
 
+def adjust_playlist(playlist_title):
+    if (len(playlist_title) == 0):
+        playlist_db, playlist_cursor = connect_to_db(main_db + ".db")
+        playlist_title = playlist_cursor.execute(f"SELECT * FROM {main_db}").fetchall()[0][1]
+        playlist_db.close()
+    return playlist_title.replace(" ", "")
+    
+def find_song(cursor, playlist_title, id):
+    song = ""
+    for row in cursor.execute(f"SELECT song_name, artist, album, id FROM {playlist_title}"):
+        if (row['id'] == id):
+            song = row
+            break
+    return song
+
+
 @app.route("/make-queue", methods=['POST', 'GET'])
 def make_queue(shuffle=False, playlist_title=None, index=None):
     if (not check_playlists_exists()):
         return {}
-    if (len(playlist_title) == 0):
-        playlist_db, playlist_cursor = connect_to_db(main_db + ".db")
-        playlist_title = playlist_cursor.execute(f"SELECT * FROM {main_db}").fetchall()[0][1]
-        playlist_title = playlist_title.replace(" ", "")
-        playlist_db.close()
+    playlist_title = adjust_playlist(playlist_title)
     db, cursor = connect_to_db(playlist_title + ".db")
     cursor.row_factory = sqlite3.Row
     arr = []
@@ -65,20 +77,12 @@ def add_to_queue():
     data = request.get_json()
     id = data.get('id', [])
     playlist_title = data.get('playlist_title', [])
-    if (len(playlist_title) == 0):
-        playlist_db, playlist_cursor = connect_to_db(main_db + ".db")
-        playlist_title = playlist_cursor.execute(f"SELECT * FROM {main_db}").fetchall()[0][1]
-        playlist_title = playlist_title.replace(" ", "")
-        playlist_db.close()
+    playlist_title = adjust_playlist(playlist_title)
     db, cursor = connect_to_db(playlist_title + ".db")
     cursor.row_factory = sqlite3.Row
-    song = ""
-    for row in cursor.execute(f"SELECT song_name, artist, album, id FROM {playlist_title}"):
-        if (row['id'] == id):
-            song = row
-            break
+    song = find_song(cursor, playlist_title, id)
     db.close()
-    manual_queue.addLast(song)
+    manual_queue.addLast(dict(song))
     return jsonify([dict(item) for item in manual_queue])
 
 @app.route("/remove-from-manual-queue", methods=['GET', 'POST'])
@@ -86,8 +90,14 @@ def remove_from_manual_queue():
     if (not check_playlists_exists()):
         return {}
     data = request.get_json()
-    index = data.get('index', [])
-    manual_queue.remove(index)
+    id = data.get('id', [])
+    playlist_title = data.get('playlist_title', [])
+    playlist_title = adjust_playlist(playlist_title)
+    db, cursor = connect_to_db(playlist_title + ".db")
+    cursor.row_factory = sqlite3.Row
+    song = find_song(cursor, playlist_title, id)
+    db.close()
+    manual_queue.remove(dict(song))
     return jsonify([dict(item) for item in manual_queue])
 
 @app.route("/remove-from-queue", methods=['GET', 'POST'])
@@ -97,8 +107,14 @@ def remove_from_queue():
     if (queue.isEmpty()):
         return {}
     data = request.get_json()
-    index = data.get('index', [])
-    queue.remove(index)
+    id = data.get('id', [])
+    playlist_title = data.get('playlist_title', [])
+    playlist_title = adjust_playlist(playlist_title)
+    db, cursor = connect_to_db(playlist_title + ".db")
+    cursor.row_factory = sqlite3.Row
+    song = find_song(cursor, playlist_title, id)
+    db.close()
+    queue.remove(song)
     return jsonify([dict(item) for item in queue])
 
 @app.route("/skip-song-forward-manual", methods=['POST', 'GET'])
@@ -173,11 +189,7 @@ def get_items():
         return {}
     data = request.get_json()
     playlist_title = data.get('playlist_title', [])
-    if (len(playlist_title) == 0):
-        playlist_db, playlist_cursor = connect_to_db(main_db + ".db")
-        playlist_title = playlist_cursor.execute(f"SELECT * FROM {main_db}").fetchall()[0][1]
-        playlist_title = playlist_title.replace(" ", "")
-        playlist_db.close()
+    playlist_title = adjust_playlist(playlist_title)
     db, cursor = connect_to_db(playlist_title + ".db")
     cursor.row_factory = sqlite3.Row
     items = cursor.execute(f"SELECT * FROM {playlist_title}").fetchall()
@@ -199,11 +211,9 @@ def get_playlists():
         curr_cursor.row_factory = sqlite3.Row
         albums = [dict(row) for row in curr_cursor.execute(f"SELECT album FROM {name} LIMIT 4").fetchall()]
         playlist_title = curr_cursor.execute(f"SELECT * FROM {name}").fetchall()[0][4]
-        print(playlist_title)
         items.append({"name": playlist_title, "albums": albums})
         curr_db.close()
     
-    print(items)
     return jsonify(items)
 
 def connect_to_db(name):
@@ -233,20 +243,35 @@ def exec(playlist_urls):
         cursor.execute(f"CREATE TABLE IF NOT EXISTS {playlist_title} (id INTEGER PRIMARY KEY AUTOINCREMENT, song_name, artist, album, playlist_title)")
         db.commit()
 
+        songs_to_download = clean_data(arr[0][1:], cursor, playlist_title)
+
         scrape_spotify.save_data(arr, cursor, db, playlist_title_original)
 
-        for row in cursor.execute("SELECT song_name, artist, album, playlist_title FROM " + playlist_title):
-            print(row)
+        playlists_added = []
+        for row in playlist_cursor.execute(f"SELECT playlist_title FROM {main_db}"):
+            playlists_added.append(row[0])
 
-        playlist_cursor.execute(f"INSERT INTO {main_db} (playlist_title) VALUES(?)", (playlist_title,))
-        playlist_db.commit()
+        if (playlist_title not in playlists_added):
+            playlist_cursor.execute(f"INSERT INTO {main_db} (playlist_title) VALUES(?)", (playlist_title,))
+            playlist_db.commit()
 
         # Search songs and download to desktop
-        scrape_spotify.download_playlist(arr[0][1:])
+        if (len(songs_to_download) > 0):
+            scrape_spotify.download_playlist(songs_to_download)
 
         db.close()
 
     playlist_db.close()
+
+def clean_data(data, cursor, playlist_title):
+    cleaned_data = []
+    songs_added = []
+    for song in cursor.execute(f"SELECT song_name, artist FROM {playlist_title}"):
+        songs_added.append(song)
+    for element in data:
+        if (tuple(element) not in songs_added):
+            cleaned_data.append(element)
+    return cleaned_data
 
 if __name__ == "__main__":
     app.run(debug=True)

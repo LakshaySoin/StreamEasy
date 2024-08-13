@@ -100,11 +100,6 @@ def scrape_playlist(playlist_url):
     albums = albums[:len(data) - 1]
     src = src[:len(data) - 1]
 
-    print("---------------")
-    print(len(data))
-    print(len(albums))
-    print(len(src))
-
     # Close the tab
     driver.close()
 

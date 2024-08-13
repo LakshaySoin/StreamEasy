@@ -130,13 +130,13 @@ const RightBar = (props) => {
         });
     };
 
-    const removeFromQueueManual = (index) => {
-        fetch('http://127.0.0.1:5000/remove-from-queue', {
+    const removeFromQueueManual = (id) => {
+        fetch('http://127.0.0.1:5000/remove-from-manual-queue', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ index: index })
+            body: JSON.stringify({ playlist_title: playlist, id: id })
         })
         .then(response => response.json())
         .then(data => {
@@ -149,13 +149,13 @@ const RightBar = (props) => {
         });
     };
 
-    const removeFromQueue = (index) => {
+    const removeFromQueue = (id) => {
         fetch('http://127.0.0.1:5000/remove-from-queue', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ index: index })
+            body: JSON.stringify({ playlist_title: playlist, id: id })
         })
         .then(response => response.json())
         .then(data => {
@@ -190,7 +190,7 @@ const RightBar = (props) => {
         {manualQueue.length !== 0 && <div className='clear' onClick={clearQueue}>
             <p>Clear Queue</p>
         </div>}
-        {manualQueue.map((song, index) => (
+        {Array.isArray(manualQueue) && manualQueue.map((song, index) => (
             <div key={song.id} aria-rowindex={index + 1} class="queue-row">
                 <div className='song-info'>
                     <div className='album-cover'>
@@ -204,7 +204,7 @@ const RightBar = (props) => {
                 <div onClick={() => handleOptionsManual(index)} className='fas fa-ellipsis-h options'>
                     {openManual && index === openIndexManual && <ul className='dropdown-menu'>
                         <li onClick={() => addToQueue(song.id)} className='faint'>Add to Queue</li>
-                        <li onClick={() => removeFromQueueManual(index + 1)} className='faint'>Remove from Queue</li>
+                        <li onClick={() => removeFromQueueManual(song.id)} className='faint'>Remove from Queue</li>
                     </ul>}
                 </div>
             </div>
@@ -213,7 +213,7 @@ const RightBar = (props) => {
             <p className='queue-text'>Next from: {curr.playlist_title}</p>
             <div onClick={shufflePlaylist} className={shuffle ? 'fas fa-random faint clicked shuffle-button' : 'fas fa-random faint shuffle-button'}></div>
         </div>
-        {queue.map((song, index) => (
+        {Array.isArray(queue) && queue.map((song, index) => (
             <div key={song.id} aria-rowindex={index + 1} class="queue-row">
                 <div className='song-info'>
                     <div className='album-cover'>
@@ -227,7 +227,7 @@ const RightBar = (props) => {
                 <div onClick={() => handleOptions(index)} className='fas fa-ellipsis-h options'>
                     {open && index === openIndex && <ul className='dropdown-menu'>
                         <li onClick={() => addToQueue(song.id)} className='faint'>Add to Queue</li>
-                        <li onClick={() => removeFromQueue(index + 1)} className='faint'>Remove from Queue</li>
+                        <li onClick={() => removeFromQueue(song.id)} className='faint'>Remove from Queue</li>
                     </ul>}
                 </div>
             </div>

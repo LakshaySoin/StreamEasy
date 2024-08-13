@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import Songs from './Songs';
 import './LeftBar.css'
 
 function LeftBar(props) {
@@ -35,9 +34,9 @@ function LeftBar(props) {
   }, []);
 
   const changePlaylist = (playlist_name) => {
-    let new_playlist_name = playlist_name.replace(/ /g, "");
-    console.log(new_playlist_name);
-    props.updateCurrPlaylist(new_playlist_name);
+    // let new_playlist_name = playlist_name.replace(/ /g, "");
+    console.log(playlist_name);
+    props.updateCurrPlaylist(playlist_name);
   }
 
   return (
@@ -52,7 +51,7 @@ function LeftBar(props) {
             <i className="fas fa-plus icon" />
           </button> */}
         </div>
-          {playlists.map((playlist, index) => (
+          {Array.isArray(playlists) && playlists.length !== 0 && playlists.map((playlist, index) => (
             <div key={index} className='playlist-cards'>
               <div onClick={() => changePlaylist(playlist.name)} aria-rowindex={index + 1} className="card-row">
                 <div className='card-image'>

@@ -12,35 +12,41 @@ class DLList:
         self.curr = self.first
         self.size = 0
 
-    def addNode(self, curr, node):
+    def addNode(self, temp, node):
         # add node before curr
-        node.prev = curr.prev
-        node.next = curr
-        curr.prev.next = node
-        curr.prev = node
+        node.prev = temp.prev
+        node.next = temp
+        temp.prev.next = node
+        temp.prev = node
         self.size += 1
 
     def insert(self, index, val):
         assert (index >= 0 and index <= self.size)
         num = 0
-        curr = self.first
-        while (num != index):
-            curr = curr.next
+        temp = self.first
+        while num != index:
+            temp = temp.next
             num += 1
         node = Node(val)
-        self.addNode(curr, node)
+        self.addNode(temp, node)
 
-    def removeNode(self, curr):
-        curr.prev.next = curr.next
-        curr.next.prev = curr.prev
+    def removeNode(self, temp):
+        temp.prev.next = temp.next
+        temp.next.prev = temp.prev
+        self.size -= 1
 
-    def remove(self, index):
-        num = 0
-        curr = self.first
-        while (num != index):
-            curr = curr.next
-            num += 1
-        self.removeNode(curr)
+    def remove(self, val):
+        if (self.size == 0):
+            return
+        temp = self.first.next
+        found = False
+        while temp != self.first:
+            if (temp.val == val):
+                found = True
+                break
+            temp = temp.next
+        if (found):
+            self.removeNode(temp)
 
     def addLast(self, val):
         node = Node(val)
