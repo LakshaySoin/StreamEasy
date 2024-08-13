@@ -5,7 +5,7 @@
 
 .song-list-container {
     flex: 60%;
-    height: 75vh;
+    height: 85vh;
     background-color: #121212;
     color: white;
     padding-left: 10px;
@@ -26,7 +26,7 @@
     padding-bottom: 5px;
     margin-bottom: 10px;
     display: grid;
-    grid-template-columns: repeat(6, auto);
+    grid-template-columns: 5% 5% 35% 35% 5% 10%;
     grid-gap: 10px;
     justify-content: left;
     overflow-x: hidden;
@@ -59,13 +59,14 @@
     width: 40px;
 }
 
-.song-name-artist {
-    width: 50vh;
+.song-name-artist-main {
+    flex: 50%;
+    /* width: 50vh; */
     font-size: 1rem;
     overflow-x: hidden;
 }
 
-.song-name-artist > p {
+.song-name-artist-main > p {
     margin: 5px;
 }
 
@@ -74,7 +75,8 @@
 }
 
 .album-name {
-    width: 40vh;
+    flex: 30%;
+    /* width: 30vh; */
     max-height: 35px;
     overflow-x: hidden;
     overflow-y: hidden;

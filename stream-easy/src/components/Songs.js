@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import './Songs.css'
 import Duration from './Duration';
 
@@ -69,7 +69,7 @@ function Songs(props) {
                 <div className='album-cover'>
                     <img src={setSource(song.album)} alt={song.album} className='album-img'></img>
                 </div>
-                <div className='song-name-artist'>
+                <div className='song-name-artist-main'>
                     <p>{song.song_name}</p>
                     <p className={hoveredRowIndex !== index && 'faint'}>{song.artist}</p>
                 </div>

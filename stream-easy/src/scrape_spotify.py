@@ -136,10 +136,9 @@ def save_data(arr, cursor, db, playlist_title_original):
         print(len(albums))
         print("the lengths are different", e)
 
-
-def find_song(driver, search_bar, songs):
+def find_song(driver, search_bar, song):
     # Search for song
-    search_bar.send_keys(songs[0] + " by " + songs[1])
+    search_bar.send_keys(song)
     search_bar.send_keys(Keys.RETURN)
 
     time.sleep(0.5)
@@ -217,7 +216,8 @@ def download_playlist(data_frame):
         )
 
         for songs in data_frame:
-            find_song(driver, search_bar, songs)
+            song_text = songs[0] + " by " + songs[1]
+            find_song(driver, search_bar, song_text)
 
             curr_url = driver.get_current_url()
 
