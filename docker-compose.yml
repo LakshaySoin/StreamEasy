@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+  frontend:
+    build:
+      context: ./stream-easy
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+    volumes:
+      - ./data:/app/data  # Mounts a directory from the host to the container
+
+  backend:
+    build:
+      context: ./stream-easy/src
+      dockerfile: Dockerfile
+    ports:
+      - "5050:5050"
+    networks:
+      - app-network
+    volumes:
+      - ./data:/app/data  # Mounts a directory from the host to the container
+    environment:
+      - FLASK_ENV=production
+    command: python3 spotify_playlist_converter.py
+
+volumes:
+  backend-data:
+
+networks:
+  app-network:
+    driver: bridge

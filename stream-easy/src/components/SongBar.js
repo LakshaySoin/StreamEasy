@@ -39,19 +39,23 @@ function SongBar(props) {
   }, [play, props.start]);
 
   const setSource = (album) => {
-      try {
-          return require(`../album-covers/${album.replace(/ /g, '').replace('?', '').replace('!', '')}.jpg`);
-      } catch (err) {
-          return null;
-      }
+    if (!album) {
+      return null;
+    }
+    const filename = album.replace(/ /g, '').replace(/[?!]/g, '') + '.jpg';
+    const albumUrl = `http://127.0.0.1:5050/album-covers/${filename}`;
+    return albumUrl;
   }
 
-  const setSong = (song_name, artist) => {
-      try {
-          return require(`../songs/${song_name.replace(/ /g, '').replace('?', '').replace('!', '') + "-" + artist.replace(/ /g, '').replace('?', '').replace('!', '')}.mp3`);
-      } catch (err) {
-          return null;
-      }
+  const setSong = (song_name, artist) => { 
+    if (!song_name || !artist) {
+      return null;
+    }
+    const songName = song_name.replace(/ /g, '').replace(/[?!]/g, '');
+    const artistName = artist.replace(/ /g, '').replace(/[?!]/g, '');
+    const filename = `${songName}-${artistName}.mp3`;
+    const songUrl = `http://127.0.0.1:5050/songs/${filename}`;
+    return songUrl;
   }
 
   const handlePlayClick = () => {

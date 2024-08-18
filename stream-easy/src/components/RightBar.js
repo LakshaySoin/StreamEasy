@@ -22,7 +22,7 @@ const RightBar = (props) => {
         if (songs.playlist_title === null) {
             return;
         }
-        fetch('http://127.0.0.1:5000/shuffle', {
+        fetch('http://127.0.0.1:5050/shuffle', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -36,7 +36,7 @@ const RightBar = (props) => {
         })
         .catch((error) => {
             console.error('Error:', error);
-            alert('An error occured trying to get the playlist data.');
+            console.log('An error occured trying to get the playlist data.');
         });
     }, [songs.playlist_title, props.index]);
 
@@ -44,7 +44,7 @@ const RightBar = (props) => {
         if (songs.playlist_title === null) {
             return;
         }
-        fetch('http://127.0.0.1:5000/shuffle', {
+        fetch('http://127.0.0.1:5050/shuffle', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -58,7 +58,7 @@ const RightBar = (props) => {
         })
         .catch((error) => {
             console.error('Error:', error);
-            alert('An error occured trying to get the playlist data.');
+            console.log('An error occured trying to get the playlist data.');
         });
     }, [shuffle]);
 
@@ -70,13 +70,14 @@ const RightBar = (props) => {
         setManualQueue(props.manualQueue);
     }, [props.manualQueue]);
 
-    const setSource = (album) => {
-        try {
-            return require(`../album-covers/${album.replace(/ /g, '').replace('?', '').replace('!', '')}.jpg`);
-        } catch (err) {
-            return null;
-        }
+  const setSource = (album) => {
+    if (!album) {
+      return null;
     }
+    const filename = album.replace(/ /g, '').replace(/[?!]/g, '') + '.jpg';
+    const albumUrl = `http://127.0.0.1:5050/album-covers/${filename}`;
+    return albumUrl;
+  }
 
     const handleOptions = (index) => {
         setOpen(prevOpen => !prevOpen);
@@ -93,7 +94,7 @@ const RightBar = (props) => {
     };
 
     const addToQueue = (id) => {
-        fetch('http://127.0.0.1:5000/add-to-queue', {
+        fetch('http://127.0.0.1:5050/add-to-queue', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -108,12 +109,12 @@ const RightBar = (props) => {
         })
         .catch((error) => {
             console.error('Error:', error);
-            alert('An error occured trying to get the playlist data.');
+            console.log('An error occured trying to get the playlist data.');
         });
     };
 
     const clearQueue = () => {
-        fetch('http://127.0.0.1:5000/clear-queue', {
+        fetch('http://127.0.0.1:5050/clear-queue', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -126,12 +127,12 @@ const RightBar = (props) => {
         })
         .catch((error) => {
             console.error('Error:', error);
-            alert('An error occured trying to clear the queue.');
+            console.log('An error occured trying to clear the queue.');
         });
     };
 
     const removeFromQueueManual = (id) => {
-        fetch('http://127.0.0.1:5000/remove-from-manual-queue', {
+        fetch('http://127.0.0.1:5050/remove-from-manual-queue', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -145,12 +146,12 @@ const RightBar = (props) => {
         })
         .catch((error) => {
             console.error('Error:', error);
-            alert('An error occured trying to remove the song.');
+            console.log('An error occured trying to remove the song.');
         });
     };
 
     const removeFromQueue = (id) => {
-        fetch('http://127.0.0.1:5000/remove-from-queue', {
+        fetch('http://127.0.0.1:5050/remove-from-queue', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -164,7 +165,7 @@ const RightBar = (props) => {
         })
         .catch((error) => {
             console.error('Error:', error);
-            alert('An error occured trying to remove the song.');
+            console.log('An error occured trying to remove the song.');
         });
     }
 

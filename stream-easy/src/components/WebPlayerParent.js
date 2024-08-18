@@ -32,7 +32,7 @@ function WebPlayer() {
         return;
       }
       if (manualQueue.length === 0) {
-        fetch('http://127.0.0.1:5000/skip-song-forward', {
+        fetch('http://127.0.0.1:5050/skip-song-forward', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -48,10 +48,10 @@ function WebPlayer() {
         })
         .catch((error) => {
             console.error('Error:', error);
-            alert('An error occured trying to skip to the next song.');
+            console.log('An error occured trying to skip to the next song.');
         });
       } else {
-        fetch('http://127.0.0.1:5000/skip-song-forward-manual', {
+        fetch('http://127.0.0.1:5050/skip-song-forward-manual', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -67,7 +67,7 @@ function WebPlayer() {
         })
         .catch((error) => {
             console.error('Error:', error);
-            alert('An error occured trying to skip to the next song.');
+            console.log('An error occured trying to skip to the next song.');
         });
       }
   }, [skipForward]);
@@ -77,7 +77,7 @@ function WebPlayer() {
         return;
       }
       if (manualQueue.length === 0) {
-        fetch('http://127.0.0.1:5000/skip-song-backward', {
+        fetch('http://127.0.0.1:5050/skip-song-backward', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -93,10 +93,10 @@ function WebPlayer() {
         })
         .catch((error) => {
             console.error('Error:', error);
-            alert('An error occured trying to skip to the next song.');
+            console.log('An error occured trying to skip to the next song.');
         });
       } else {
-        fetch('http://127.0.0.1:5000/skip-song-backward-manual', {
+        fetch('http://127.0.0.1:5050/skip-song-backward-manual', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -112,13 +112,13 @@ function WebPlayer() {
         })
         .catch((error) => {
             console.error('Error:', error);
-            alert('An error occured trying to skip to the next song.');
+            console.log('An error occured trying to skip to the next song.');
         });
       }
   }, [skipBackward]);
 
   useEffect(() => {
-      fetch('http://127.0.0.1:5000/webplayer', {
+      fetch('http://127.0.0.1:5050/webplayer', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json'
@@ -132,12 +132,12 @@ function WebPlayer() {
       })
       .catch((error) => {
           console.error('Error:', error);
-          alert('An error occured trying to get the playlist data.');
+          console.log('An error occured trying to get the playlist data.');
       });
   }, [playlist]);
 
   useEffect(() => {
-      fetch('http://127.0.0.1:5000/shuffle', {
+      fetch('http://127.0.0.1:5050/shuffle', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json'
@@ -151,7 +151,7 @@ function WebPlayer() {
       })
       .catch((error) => {
           console.error('Error:', error);
-          alert('An error occured trying to get the playlist data.');
+          console.log('An error occured trying to get the playlist data.');
       });
   }, [playlist]);
 

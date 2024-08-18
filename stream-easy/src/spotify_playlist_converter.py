@@ -9,7 +9,14 @@ import numpy as np
 import os
 
 app = Flask(__name__)
-CORS(app)
+# CORS(app)
+CORS(app, resources={
+    r"/*": {
+        "origins": ["http://localhost:3000"],  # Replace with your frontend URL
+        "methods": ["GET", "POST", "PUT", "DELETE"],
+        "allow_headers": ["Content-Type"]
+    }
+})
 main_db = "stream_easy"
 queue = dllist.DLList()
 manual_queue = dllist.DLList()
@@ -22,6 +29,16 @@ def receive_links():
     links = data.get('links', [])
     exec(links)
     return {}
+
+@app.route('/songs/<filename>')
+def get_song(filename):
+    print(filename)
+    return send_from_directory('/app/data/songs', filename)
+
+@app.route('/album-covers/<filename>')
+def get_album_cover(filename):
+    print(filename)
+    return send_from_directory('/app/data/album-covers', filename)
 
 def check_playlists_exists():
     if (os.path.exists("stream_easy.db")):
@@ -274,4 +291,4 @@ def clean_data(data, cursor, playlist_title):
     return cleaned_data
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5050, debug=True)

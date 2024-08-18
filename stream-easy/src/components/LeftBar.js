@@ -3,20 +3,21 @@ import './LeftBar.css'
 
 function LeftBar(props) {
   const [playlists, setPlaylists] = useState([]);
-  // const [curr, setCurr] = useState([]);
 
   const setSource = (album) => {
     let album_name = album.album;
+    console.log(album_name);
     try {
-      return require(`../album-covers/${album_name.replace(/ /g, '')}.jpg`);
-    }
-    catch (err) {
-      return null;
+        const filename = album_name.replace(/ /g, '').replace(/[?!]/g, '') + '.jpg';
+        const albumUrl = `http://127.0.0.1:5050/album-covers/${filename}`;
+        return albumUrl;
+    } catch (err) {
+        return null;
     }
   }
 
   useEffect(() => {
-      fetch('http://127.0.0.1:5000/get-playlists', {
+      fetch('http://127.0.0.1:5050/get-playlists', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json'
@@ -29,12 +30,11 @@ function LeftBar(props) {
       })
       .catch((error) => {
           console.error('Error:', error);
-          alert('An error occured trying to get the playlist cards.');
+          console.log('An error occured trying to get the playlist cards.');
       });
   }, []);
 
   const changePlaylist = (playlist_name) => {
-    // let new_playlist_name = playlist_name.replace(/ /g, "");
     console.log(playlist_name);
     props.updateCurrPlaylist(playlist_name);
   }

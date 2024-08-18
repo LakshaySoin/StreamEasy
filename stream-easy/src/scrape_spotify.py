@@ -7,103 +7,108 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains as AC
 from seleniumbase import SB
-# from selenium.webdriver.chrome.options import Options
 import urllib
 import os
 import time
 import yt_dlp
 
 def scrape_playlist(playlist_url):
-    driver = webdriver.Chrome()
+    with SB(uc=True) as driver:
 
-    # Open spotify for data collection
-    driver.get(playlist_url)
-    driver.maximize_window()
-    
-    # Store song names, artists, and album name/cover
-    data = []
-    src = []
-    albums = []
+    # driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
 
-    # Get the name of spotify playlist to use for youtube playlist
-    playlist_name = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CLASS_NAME, 'rEN7ncpaUeSGL9z0NGQR'))
-    )
+        # Open spotify for data collection
+        # driver.get("https://www.google.com/")
+        driver.get(playlist_url)
+        driver.maximize_window()
+        
+        # Store song names, artists, and album name/cover
+        data = []
+        src = []
+        albums = []
 
-    data.append(playlist_name.text)
-
-    # Length of container with songs
-    length = driver.execute_script("return document.querySelector('.lYpiKR_qEjl1jGGyEvsA').clientHeight")
-
-    curr_length = 0
-
-    action = AC(driver)
-
-    while True:
-        # Get album cover image
-        album_covers = driver.find_elements(By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]/div[2]/main/div[1]/section/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[2]/img')
-
-        # Get song and artist names on the current page
-        elements = driver.find_elements(By.CLASS_NAME, '_iQpvk1c9OgRAc8KRTlH')
-
-        album_names = driver.find_elements(By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]/div[2]/main/div[1]/section/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[3]')
-
-        skips = []
-
-        # Iterate through all song elements and append unique ones to array
-        for i in range(len(elements)):
-            info = elements[i].text.split("\n")
-            song_name, artist_name = info[0], info[-1]
-            arr = [song_name, artist_name]
-            if arr not in data:
-                data.append(arr)
-            else:
-                skips.append(i)
-
-        for i in range(len(album_names)):
-            if (i not in skips):
-                albums.append(album_names[i].text)
-
-        for i in range(len(album_covers)):
-            if (i not in skips):
-                img = album_covers[i]
-                src.append(img.get_attribute('src'))
-
-        for i in range(len(src)):
-            print(data[i + 1])
-            print(albums[i])
-            print(src[i])
-
-        # print(len(data))
-        # print(len(albums))
-        # print(len(src))
-
-        # Container to scroll within
-        scroll_box = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[4]/div/div'))
+        # Get the name of spotify playlist to use for youtube playlist
+        playlist_name = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CLASS_NAME, 'rEN7ncpaUeSGL9z0NGQR'))
         )
 
-        # Move down webpage (this doesn't accidently click album names)
-        action.click_and_hold(scroll_box).drag_and_drop_by_offset(scroll_box, 0, 50).perform()
+        data.append(playlist_name.text)
 
-        # Calculate new scroll height and compare with last scroll height
-        curr_length += 50
+        # Length of container with songs
+        length = driver.execute_script("return document.querySelector('.lYpiKR_qEjl1jGGyEvsA').clientHeight")
 
-        time.sleep(1)
+        curr_length = 0
 
-        # End scrolling
-        if curr_length >= length:
-            break
+        action = AC(driver)
 
-    # Remove recommended songs
-    data = data[:-10]
-    albums = albums[:len(data) - 1]
-    src = src[:len(data) - 1]
+        while True:
+            # Get album cover image
+            album_covers = driver.find_elements(By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]/div[2]/main/div[1]/section/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[2]/img')
 
-    # Close the tab
-    driver.close()
+            # Get song and artist names on the current page
+            elements = driver.find_elements(By.CLASS_NAME, '_iQpvk1c9OgRAc8KRTlH')
 
-    return [data, albums, src]
+            album_names = driver.find_elements(By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]/div[2]/main/div[1]/section/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[3]')
+
+            skips = []
+
+            # Iterate through all song elements and append unique ones to array
+            for i in range(len(elements)):
+                info = elements[i].text.split("\n")
+                song_name, artist_name = info[0], info[-1]
+                arr = [song_name, artist_name]
+                if arr not in data:
+                    data.append(arr)
+                else:
+                    skips.append(i)
+
+            for i in range(len(album_names)):
+                if (i not in skips):
+                    albums.append(album_names[i].text)
+
+            for i in range(len(album_covers)):
+                if (i not in skips):
+                    img = album_covers[i]
+                    src.append(img.get_attribute('src'))
+
+            for i in range(len(src)):
+                print(data[i + 1])
+                print(albums[i])
+                print(src[i])
+
+            # Container to scroll within
+            # scroll_box = driver.wait_for_element(
+            #     '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[4]/div', by=By.XPATH, timeout=10
+            # )
+
+            # print(scroll_box)
+            scroll_box = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]'))
+            )
+
+            # Move down webpage (this doesn't accidently click album names)
+            # action.click_and_hold(scroll_box).drag_and_drop_by_offset(scroll_box, 0, 50).perform()
+
+            scroll_box.send_keys(Keys.PAGE_DOWN)
+
+            # Calculate new scroll height and compare with last scroll height
+            curr_length += 50
+
+            time.sleep(1)
+
+            # End scrolling
+            if curr_length >= length:
+                break
+
+        # Remove recommended songs
+        data = data[:-10]
+        albums = albums[:len(data) - 1]
+        src = src[:len(data) - 1]
+
+        # Close the tab
+        # driver.close()
+
+        return [data, albums, src]
 
 def save_data(arr, cursor, db, playlist_title_original):
     playlist_title = playlist_title_original.replace(" ", "")
@@ -120,7 +125,7 @@ def save_data(arr, cursor, db, playlist_title_original):
             cursor.execute("INSERT INTO " + playlist_title + "(song_name, artist, album, playlist_title) VALUES(?, ?, ?, ?)", entry)
             db.commit()
 
-    folder = "album-covers"
+    folder = "./data/album-covers"
 
     # Check if the folder already exists
     if not os.path.exists(folder):
@@ -223,7 +228,7 @@ def download_playlist(data_frame):
 
             ydl_opts = {
                 'format': 'm4a/bestaudio/best',
-                'outtmpl': f'./songs/{songs[0].replace(" ", "").replace("?", "").replace("!", "")}-{songs[1].replace(" ", "").replace("?", "").replace("!", "")}',
+                'outtmpl': f'./data/songs/{songs[0].replace(" ", "").replace("?", "").replace("!", "")}-{songs[1].replace(" ", "").replace("?", "").replace("!", "")}',
                 'postprocessors': [{  # Extract audio using ffmpeg
                     'key': 'FFmpegExtractAudio',
                     'preferredcodec': 'mp3',

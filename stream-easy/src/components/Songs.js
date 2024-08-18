@@ -11,13 +11,16 @@ function Songs(props) {
     props.updateCurrSong(index);
   }
 
-    const getSongLength = (song_name, artist) => {
-      try {
-          return require(`../songs/${song_name.replace(/ /g, '') + "-" + artist.replace(/ /g, '')}.mp3`);
-      } catch (err) {
-          return null;
-      }
+  const getSongLength = (song_name, artist) => { 
+    if (!song_name || !artist) {
+      return null;
     }
+    const songName = song_name.replace(/ /g, '').replace(/[?!]/g, '');
+    const artistName = artist.replace(/ /g, '').replace(/[?!]/g, '');
+    const filename = `${songName}-${artistName}.mp3`;
+    const songUrl = `http://127.0.0.1:5050/songs/${filename}`;
+    return songUrl;
+  }
 
   const handleMouseEnter = (index) => {
     setHoveredRowIndex(index);
@@ -28,16 +31,16 @@ function Songs(props) {
   };
 
   const setSource = (album) => {
-    try {
-      return require(`../album-covers/${album.replace(/ /g, '').replace('?', '').replace('!', '')}.jpg`);
-    }
-    catch (err) {
+    if (!album) {
       return null;
     }
+    const filename = album.replace(/ /g, '').replace(/[?!]/g, '') + '.jpg';
+    const albumUrl = `http://127.0.0.1:5050/album-covers/${filename}`;
+    return albumUrl;
   }
 
   const addToQueue = (id) => {
-      fetch('http://127.0.0.1:5000/add-to-queue', {
+      fetch('http://127.0.0.1:5050/add-to-queue', {
           method: 'POST',
           headers: {
               'Content-Type': 'application/json'
@@ -51,7 +54,7 @@ function Songs(props) {
       })
       .catch((error) => {
           console.error('Error:', error);
-          alert('An error occured trying to get the playlist data.');
+          console.log('An error occured trying to get the playlist data.');
       });
   };
 

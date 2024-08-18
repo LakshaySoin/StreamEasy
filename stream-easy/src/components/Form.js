@@ -9,7 +9,7 @@ function Form() {
     const handleSubmit = (event) => {
         event.preventDefault();
         const linksArray = links.split('\n').filter(link => link.trim() !== '');
-        fetch('http://127.0.0.1:5000/', {
+        fetch('http://127.0.0.1:5050/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
