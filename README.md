@@ -1,4 +1,4 @@
-# Spotify-Web-Scraper
+# StreamEasy: Spotify-Web-Scraper
 
 Web scrapes Spotify playlists and creates a custom local web player with those same playlists.
 
