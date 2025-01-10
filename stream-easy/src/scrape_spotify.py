@@ -43,12 +43,15 @@ def scrape_playlist(playlist_url):
 
         while True:
             # Get album cover image
-            album_covers = driver.find_elements(By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]/div[2]/main/div[1]/section/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[2]/img')
+            # album_covers = driver.find_elements(By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]/div[2]/main/div[1]/section/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[2]/img')
+            album_covers = driver.find_elements(By.XPATH, '//*[@id="main"]/div/div[2]/div[4]/div/div[2]/div[2]/div/main/section/div[2]/div[3]/div/div[1]/div[2]/div[2]/div[*]/div/div[2]/img')
+            # album_covers = driver.find_elements(By.XPATH, '//*[@id="main"]/div/div[2]/div[4]/div/div[2]/div[2]/div/main/section/div[2]/div[3]/div/div[1]/div[2]/div[2]/div[1]/div/div[2]/img')
 
             # Get song and artist names on the current page
             elements = driver.find_elements(By.CLASS_NAME, '_iQpvk1c9OgRAc8KRTlH')
 
-            album_names = driver.find_elements(By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]/div[2]/main/div[1]/section/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[3]')
+            # album_names = driver.find_elements(By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]/div[2]/main/div[1]/section/div[2]/div[3]/div[1]/div[2]/div[2]/div/div/div[3]')
+            album_names = driver.find_elements(By.XPATH, '//*[@id="main"]/div/div[2]/div[4]/div/div[2]/div[2]/div/main/section/div[2]/div[3]/div/div[1]/div[2]/div[2]/div[*]/div/div[3]')
 
             skips = []
 
@@ -72,9 +75,15 @@ def scrape_playlist(playlist_url):
                     src.append(img.get_attribute('src'))
 
             for i in range(len(src)):
-                print(data[i + 1])
-                print(albums[i])
+                # print(data[i + 1])
+                # print(albums[i])
                 print(src[i])
+
+            # for i in range(len(data) + 1):
+            #     print(data[i + 1])
+
+            for i in range(len(albums)):
+                print(albums[i])
 
             # Container to scroll within
             # scroll_box = driver.wait_for_element(
@@ -82,8 +91,12 @@ def scrape_playlist(playlist_url):
             # )
 
             # print(scroll_box)
+            # scroll_box = WebDriverWait(driver, 10).until(
+            #     EC.presence_of_element_located((By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]'))
+            # )
+
             scroll_box = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="main"]/div/div[2]/div[3]/div[1]/div[2]/div[2]'))
+                EC.presence_of_element_located((By.XPATH, '//*[@id="main"]/div/div[2]/div[4]/div/div[2]/div[2]'))
             )
 
             # Move down webpage (this doesn't accidently click album names)
@@ -115,15 +128,21 @@ def save_data(arr, cursor, db, playlist_title_original):
     data = arr[0]
     albums = arr[1]
     src = arr[2]
+    print(data)
+    print(albums)
+    print(src)
     for i in range(len(albums)): 
         entry = (data[i + 1][0], data[i + 1][1], albums[i], playlist_title_original)
+        print(entry)
         add_to_db = True
-        for row in cursor.execute("SELECT song_name, artist, album, playlist_title FROM " + playlist_title):
+        for row in cursor.execute(f"SELECT song_name, artist, album, playlist_title FROM {playlist_title}"):
             if entry == row:
                 add_to_db = False
+        print(add_to_db)
         if (add_to_db):
-            cursor.execute("INSERT INTO " + playlist_title + "(song_name, artist, album, playlist_title) VALUES(?, ?, ?, ?)", entry)
+            cursor.execute(f"INSERT INTO {playlist_title} (song_name, artist, album, playlist_title) VALUES(?, ?, ?, ?)", entry)
             db.commit()
+            print("hello")
 
     folder = "./data/album-covers"
 
@@ -217,7 +236,7 @@ def download_playlist(data_frame):
 
         # Locate youtube search bar
         search_bar = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, "//input[@id='search']"))
+            EC.presence_of_element_located((By.XPATH, '//*[@id="center"]/yt-searchbox/div[1]/form/input'))
         )
 
         for songs in data_frame:
