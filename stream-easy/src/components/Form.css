@@ -26,6 +26,18 @@
     text-align: center;
   }
 
+  .loading-container {
+    margin-top: 250px;
+  }
+
+  .loading-container > p {
+    color: #fff;
+    font-size: 30px;
+    margin-top: 30px;
+    font-family: "Montserrat", sans-serif;
+    text-align: center;
+  }
+
   .downloading-container {
     margin-top: 250px;
   }
