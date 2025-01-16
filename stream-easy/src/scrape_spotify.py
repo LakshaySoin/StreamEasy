@@ -74,16 +74,16 @@ def scrape_playlist(playlist_url):
                     img = album_covers[i]
                     src.append(img.get_attribute('src'))
 
-            for i in range(len(src)):
-                # print(data[i + 1])
-                # print(albums[i])
-                print(src[i])
+            # for i in range(len(src)):
+            #     # print(data[i + 1])
+            #     # print(albums[i])
+            #     print(src[i])
 
             # for i in range(len(data) + 1):
             #     print(data[i + 1])
 
-            for i in range(len(albums)):
-                print(albums[i])
+            # for i in range(len(albums)):
+            #     print(albums[i])
 
             # Container to scroll within
             # scroll_box = driver.wait_for_element(
@@ -105,7 +105,8 @@ def scrape_playlist(playlist_url):
             scroll_box.send_keys(Keys.PAGE_DOWN)
 
             # Calculate new scroll height and compare with last scroll height
-            curr_length += 50
+            # curr_length += 50
+            curr_length += 100
 
             time.sleep(1)
 
