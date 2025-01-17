@@ -323,7 +323,7 @@ def download_song(song):
 def process_songs_in_parallel(data_frame):
     # with ThreadPoolExecutor(max_workers=2) as executor:  # Limit to 2 threads
     #     executor.map(download_song, data_frame)
-    with ThreadPoolExecutor(max_workers=4) as executor:
+    with ThreadPoolExecutor(max_workers=5) as executor:
         futures = [
             executor.submit(download_song, song) 
             for song in data_frame
