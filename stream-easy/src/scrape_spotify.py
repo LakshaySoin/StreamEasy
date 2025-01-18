@@ -10,6 +10,7 @@ from seleniumbase import SB
 import urllib
 import os
 import time
+from concurrent.futures import ThreadPoolExecutor
 import yt_dlp
 
 def scrape_playlist(playlist_url):
@@ -228,37 +229,108 @@ def convert_to_youtube(data_frame, username, password, playlist_title):
                         add_to_playlist.click()
 
 def download_playlist(data_frame):
+    process_songs_in_parallel(data_frame)
+    # with SB(uc=True) as driver:
+    #     driver.get("https://www.youtube.com/")
+
+    #     driver.maximize_window()
+
+    #     time.sleep(3)
+
+    #     # Locate youtube search bar
+    #     search_bar = WebDriverWait(driver, 10).until(
+    #         EC.presence_of_element_located((By.XPATH, '//*[@id="center"]/yt-searchbox/div[1]/form/input'))
+    #     )
+
+    #     # for song in data_frame:
+    #         # download_song(driver, song, search_bar)
+
+    #     time.sleep(3)
+
+def download_song(song):
     with SB(uc=True) as driver:
         driver.get("https://www.youtube.com/")
-
-        driver.maximize_window()
-
-        time.sleep(3)
-
-        # Locate youtube search bar
         search_bar = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, '//*[@id="center"]/yt-searchbox/div[1]/form/input'))
         )
+        try:
+            song_text = f"{song[0]} by {song[1]} official audio"
+            # Search for song
+            print(song_text)
+            search_bar.send_keys(song_text)
+            search_bar.send_keys(Keys.RETURN)
 
-        for songs in data_frame:
-            song_text = songs[0] + " by " + songs[1]
-            find_song(driver, search_bar, song_text)
+            time.sleep(0.5)
 
-            curr_url = driver.get_current_url()
+            # Click on first video result
+            video = driver.find_element(By.CSS_SELECTOR, 'a[id="video-title"]')
+            video.click()
+            # find_song(driver, search_bar, song_text)
+
+            curr_url = video.get_attribute('href')
+
+            if not curr_url:
+                raise Exception("Failed to extract video URL.")
+            print(f"Video URL: {curr_url}")
 
             ydl_opts = {
                 'format': 'm4a/bestaudio/best',
-                'outtmpl': f'./data/songs/{songs[0].replace(" ", "").replace("?", "").replace("!", "")}-{songs[1].replace(" ", "").replace("?", "").replace("!", "")}',
-                'postprocessors': [{  # Extract audio using ffmpeg
-                    'key': 'FFmpegExtractAudio',
-                    'preferredcodec': 'mp3',
-                }]
+                'outtmpl': f'./data/songs/{song[0].replace(" ", "").replace("?", "").replace("!", "")}-{song[1].replace(" ", "").replace("?", "").replace("!", "")}',
+                'postprocessors': [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3'}]
             }
-
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                ydl.download([f'{curr_url}'])
+                ydl.download([f"ytsearch1:{song_text}"])
+        except Exception as e:
+            print(f"Error processing song {song[0]} by {song[1]}: {e}")
+        finally:
+            pass
+    # with SB(uc=True) as driver:
+    #     driver.get("https://www.youtube.com/")
 
-            # Clear the search bar so the next song search works correctly
-            search_bar.clear()
+    #     driver.maximize_window()
 
-        time.sleep(3)
+    #     time.sleep(3)
+
+    #     # Locate youtube search bar
+    #     search_bar = WebDriverWait(driver, 10).until(
+    #         EC.presence_of_element_located((By.XPATH, '//*[@id="center"]/yt-searchbox/div[1]/form/input'))
+    #     )
+    #     try:
+    #         song_text = f"{song[0]} by {song[1]}"
+    #         find_song(driver, search_bar, song_text)
+
+    #         curr_url = driver.current_url
+
+    #         ydl_opts = {
+    #             'format': 'm4a/bestaudio/best',
+    #             'outtmpl': f'./data/songs/{song[0].replace(" ", "").replace("?", "").replace("!", "")}-{song[1].replace(" ", "").replace("?", "").replace("!", "")}',
+    #             'postprocessors': [{  # Extract audio using ffmpeg
+    #                 'key': 'FFmpegExtractAudio',
+    #                 'preferredcodec': 'mp3',
+    #             }]
+    #         }
+
+    #         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+    #             ydl.download([curr_url])
+
+    #         # Clear the search bar for the next task
+    #         search_bar.clear()
+
+    #     except Exception as e:
+    #         print(f"Error processing song {song[0]} by {song[1]}: {e}")
+
+
+def process_songs_in_parallel(data_frame):
+    # with ThreadPoolExecutor(max_workers=2) as executor:  # Limit to 2 threads
+    #     executor.map(download_song, data_frame)
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        futures = [
+            executor.submit(download_song, song) 
+            for song in data_frame
+        ]
+
+        for future in futures:
+            try:
+                future.result()  # Handle exceptions if needed
+            except Exception as e:
+                print(f"Error in future: {e}")
